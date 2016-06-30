@@ -1,0 +1,29 @@
+Name:
+execution_example.txt
+
+Appliance:
+hadoop
+
+Adapters:
+{
+   "exec":"bash run_job.sh",
+   "argv":[
+      "@{input_file}",
+      "parameter"
+   ],
+   "cwd":"~",
+   "environment":{
+      "ENV1":"env1",
+      "ENV2":"2",
+      "ENV3":"${env3}"
+   },
+   "output_adapter":{
+      "output_type":"file",
+      "output_parameters":{
+         "file_path":"output.txt"
+      }
+   }
+}
+
+Archive:
+http://dropbox.jonathanpastor.fr/archive.tgz
