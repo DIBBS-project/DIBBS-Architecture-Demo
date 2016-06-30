@@ -1,0 +1,26 @@
+version: '2'
+services:
+  process_registry:
+    build: .
+    working_dir: /process_registry
+    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+  process_dispatcher:
+    build: .
+    working_dir: /process_dispatcher
+    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8001"
+    ports:
+      - "8001:8001"
+  resource_provisioner:
+    build: .
+    working_dir: /resource_provisioner
+    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
+    ports:
+      - "8002:8002"
+  appliance_registry:
+    build: .
+    working_dir: /appliance_registry
+    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
+    ports: 
+      - "8003:8003"
