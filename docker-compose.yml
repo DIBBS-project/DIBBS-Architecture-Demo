@@ -1,26 +1,35 @@
 version: '2'
 services:
-  process_registry:
-    build: .
-    working_dir: /process_registry
-    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
   process_dispatcher:
+    # network_mode: "host"
     build: .
     working_dir: /process_dispatcher
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8001"
+    expose:
+      - "8001"
     ports:
+      - "8000:8000"
       - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+  process_registry:
+    network_mode: "service:process_dispatcher"
+    build: .
+    working_dir: /process_registry
+    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - "process_dispatcher"
   resource_provisioner:
+    network_mode: "service:process_dispatcher"
     build: .
     working_dir: /resource_provisioner
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
-    ports:
-      - "8002:8002"
+    depends_on:
+      - "process_dispatcher"
   appliance_registry:
+    network_mode: "service:process_dispatcher"
     build: .
     working_dir: /appliance_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
-    ports: 
-      - "8003:8003"
+    depends_on:
+      - "process_dispatcher"
