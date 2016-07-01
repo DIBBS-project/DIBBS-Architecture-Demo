@@ -6,12 +6,12 @@ Process ID:
 
 Parameters:
 {
-   "parameter": "plop"
+  "parameter": "plop"
 }
 
 Files:
 {
-   "input_file": "http://dropbox.jonathanpastor.fr/input.txt"
+  "input_file": "http://dropbox.jonathanpastor.fr/input.txt"
 }
 
 Callback URL:

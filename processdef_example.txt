@@ -1,29 +1,35 @@
 Name:
-execution_example.txt
+line_counter_hadoop
 
 Appliance:
 hadoop
 
-Adapters:
+Archive URL:
+http://dropbox.jonathanpastor.fr/archive.tgz
+
+Executable:
+bash run_job.sh
+
+Current Working Directory:
+~
+
+Environment:
 {
-   "exec":"bash run_job.sh",
-   "argv":[
-      "@{input_file}",
-      "parameter"
-   ],
-   "cwd":"~",
-   "environment":{
-      "ENV1":"env1",
-      "ENV2":"2",
-      "ENV3":"${env3}"
-   },
-   "output_adapter":{
-      "output_type":"file",
-      "output_parameters":{
-         "file_path":"output.txt"
-      }
-   }
+  "ENV1":"env1",
+  "ENV2":"2",
+  "ENV3":"${env3}"
 }
 
-Archive:
-http://dropbox.jonathanpastor.fr/archive.tgz
+Argv:
+[
+  "@{input_file}",
+  "parameter"
+]
+
+Output type:
+File
+
+Output parameters:
+{
+  "file_path":"output.txt"
+}
