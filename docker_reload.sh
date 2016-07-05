@@ -9,10 +9,11 @@ if [[ $UID != 0 ]]; then
     exit 1
 fi
 
-# Check if APT is installed
+# Check if APT or yum are installed
 APT_PATH=$(which apt-get)
-if [ "$APT_PATH" == "" ]; then
-    echo "Could  not find APT.  Are you running this  script from a  debian like system?"
+YUM_PATH=$(which yum)
+if [ "${APT_PATH}${YUM_PATH}" == "" ]; then
+    echo "Could  not find APT nor yum.  Are you running this  script from a debian or RHEL like system?"
     exit 1
 fi
 
