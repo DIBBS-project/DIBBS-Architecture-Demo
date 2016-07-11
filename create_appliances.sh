@@ -8,6 +8,8 @@ RESOURCE_MANAGER_URL="http://127.0.0.1:8002"
 APPLIANCE_REGISTRY_URL="http://127.0.0.1:8003"
 CALLBACK_URL="http://requestb.in/1mstk8z1"
 
+IMAGE_NAME="CC-CENTOS-dibbs"
+
 echo "Testing the streaming architecture"
 
 function extract_token {
@@ -101,6 +103,7 @@ for FOLDER in appliances/*; do
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
   "name": "${APPLIANCE_NAME}",
+  "image_name": "$IMAGE_NAME",
   "site": "$SITE_NAME"
 }
 EOM
