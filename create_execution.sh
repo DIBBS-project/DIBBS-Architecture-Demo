@@ -55,17 +55,29 @@ read -r -d '' PROCESS_FILE_PARAMETERS_JSON_VALUE <<- EOM
 EOM
 PROCESS_FILE_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $PROCESS_FILE_PARAMETERS_JSON_VALUE | sed 's/"/\\\"/g')
 
-read -r -d '' PROCESS_EXECUTION_JSON_VALUE <<- EOM
+read -r -d '' PROCESS_INSTANCE_JSON_VALUE <<- EOM
 {
   "author": 0,
-  "process_id": $PROCESS_ID,
+  "process_definition_id": $PROCESS_ID,
+  "name": "process_instance_demo",
   "parameters": "$PROCESS_PARAMETERS_JSON_VALUE_ESCAPED",
-  "files": "$PROCESS_FILE_PARAMETERS_JSON_VALUE_ESCAPED",
-  "callback_url": "$CALLBACK_URL",
-  "mrcluster_token": "$MRCLUSTER_TOKEN"
+  "files": "$PROCESS_FILE_PARAMETERS_JSON_VALUE_ESCAPED"
 }
 EOM
 
-curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_EXECUTION_JSON_VALUE" "$PROCESS_DISPATCHER_URL/pdapp/exec/"
+PROCESS_INSTANCE_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_INSTANCE_JSON_VALUE" "$PROCESS_DISPATCHER_URL/process_instances/")
+PROCESS_INSTANCE_ID=$(extract_id $PROCESS_INSTANCE_REGISTRATION_OUTPUT)
+
+
+read -r -d '' PROCESS_EXECUTION_JSON_VALUE <<- EOM
+{
+  "author": 0,
+  "process_instance": $PROCESS_INSTANCE_ID,
+  "callback_url": "$CALLBACK_URL",
+  "resource_provisioner_token": "$MRCLUSTER_TOKEN"
+}
+EOM
+
+curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_EXECUTION_JSON_VALUE" "$PROCESS_DISPATCHER_URL/executions/"
 
 exit 0

@@ -8,6 +8,8 @@ RESOURCE_MANAGER_URL="http://127.0.0.1:8002"
 APPLIANCE_REGISTRY_URL="http://127.0.0.1:8003"
 CALLBACK_URL="http://requestb.in/1mstk8z1"
 
+IMAGE_NAME="CC-CENTOS-dibbs"
+
 echo "Testing the streaming architecture"
 
 function extract_token {
@@ -43,10 +45,10 @@ EOM
 
 
 
-curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
-  "name": "KVM@TACC",
-  "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
-}' 'http://127.0.0.1:8003/sites/'
+  curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+    "name": "KVM@TACC",
+    "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
+  }' 'http://127.0.0.1:8003/sites/'
 fi
 
 ########################################################
@@ -100,11 +102,21 @@ for FOLDER in appliances/*; do
     APPLIANCE_NAME=$(echo $FOLDER | sed 's/.*\///g' | sed 's/\..*//g')
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
-  "name": "${APPLIANCE_NAME}",
-  "site": "$SITE_NAME"
+  "name": "${APPLIANCE_NAME}"
 }
 EOM
     curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances/"
+
+    APPLIANCE_IMPL_NAME="${APPLIANCE_NAME}_${SITE_NAME}"
+    read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
+{
+  "name": "$APPLIANCE_IMPL_NAME",
+  "appliance": "${APPLIANCE_NAME}",
+  "image_name": "$IMAGE_NAME",
+  "site": "$SITE_NAME"
+}
+EOM
+    curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances_impl/"
 
     for FILE in $FOLDER/*; do
         ACTION_NAME=$(echo $FILE | sed 's/.*\///g' | sed 's/\..*//g')
@@ -115,7 +127,7 @@ EOM
         read -r -d '' SCRIPT_JSON_VALUE <<- EOM
 {
   "code": "${ESCAPED_CONTENT}",
-  "appliance": "${APPLIANCE_NAME}",
+  "appliance": "${APPLIANCE_IMPL_NAME}",
   "action": "${ACTION_NAME}"
 }
 EOM

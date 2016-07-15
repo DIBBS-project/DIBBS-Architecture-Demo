@@ -8,13 +8,13 @@ RUN apt-get install -y libffi-dev libssl-dev
 
 # Clone projects
 #   process_registry
-RUN ls; which pip; git clone https://github.com/chardetm/process_registry.git
+RUN git clone -b development https://github.com/chardetm/process_registry.git
 #   process_dispatcher
-RUN git clone https://github.com/chardetm/process_dispatcher.git
+RUN git clone -b development https://github.com/chardetm/process_dispatcher.git
 #   appliance_registry
-RUN git clone https://github.com/chardetm/appliance_registry.git
+RUN git clone -b development https://github.com/chardetm/appliance_registry.git
 #   resource_manager
-RUN git clone https://github.com/chardetm/resource_provisioner.git
+RUN git clone -b development https://github.com/chardetm/resource_provisioner.git
 
 # Upgrade pip
 RUN pip install --upgrade pip

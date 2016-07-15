@@ -53,14 +53,9 @@ ARGV_JSON_VALUE_ESCAPED=$(echo $ARGV_JSON_VALUE | sed 's/"/\\\"/g')
 
 read -r -d '' PROCESS_JSON_VALUE <<- EOM
 {
-    "name": "line_counter_hadoop",
+    "name": "line_counter",
     "author": 1,
-    "appliance": "hadoop",
-    "archive_url": "http://dropbox.jonathanpastor.fr/archive.tgz",
-    "executable":"bash run_job.sh",
     "argv": "$ARGV_JSON_VALUE_ESCAPED",
-    "cwd":"~",
-    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
     "output_type":"file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
@@ -71,5 +66,28 @@ echo $PROCESS_JSON_VALUE
 PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
 PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
 echo $PROCESS_ID
+
+########################################################
+# CREATION OF PROCESS IMPLEMENTATION
+########################################################
+
+read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
+{
+    "name": "line_counter_hadoop",
+    "author": 1,
+    "appliance": "hadoop",
+    "process_definition": $PROCESS_ID,
+    "archive_url": "http://dropbox.jonathanpastor.fr/archive.tgz",
+    "executable":"bash run_job.sh",
+    "cwd":"~",
+    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED"
+}
+EOM
+
+echo $PROCESS_IMPL_JSON_VALUE
+
+PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/processimpls/")
+PROCESS_IMPL_ID=$(extract_id $PROCESS_IMPL_REGISTRATION_OUTPUT)
+echo $PROCESS_IMPL_ID
 
 exit 0
