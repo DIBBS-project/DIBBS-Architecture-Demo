@@ -10,7 +10,7 @@ CALLBACK_URL="http://requestb.in/1mstk8z1"
 
 IMAGE_NAME="CC-CENTOS-dibbs"
 
-echo "Testing the streaming architecture"
+echo "Testing the architecture"
 
 function extract_token {
 

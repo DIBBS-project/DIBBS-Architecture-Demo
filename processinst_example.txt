@@ -1,0 +1,15 @@
+Process Definition ID:
+#1 - line_counter
+
+Name:
+my_line_counter_instance
+
+Parameters:
+{
+  "parameter": "plop"
+}
+
+Files:
+{
+  "input_file": "http://dropbox.jonathanpastor.fr/input.txt"
+}
