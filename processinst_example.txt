@@ -6,7 +6,7 @@ my_line_counter_instance
 
 Parameters:
 {
-  "parameter": "plop"
+  "env3": "plop"
 }
 
 Files:

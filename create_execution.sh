@@ -43,7 +43,7 @@ MRCLUSTER_TOKEN=$2
 
 read -r -d '' PROCESS_PARAMETERS_JSON_VALUE <<- EOM
 {
-   "parameter": "plop"
+   "env3": "plop"
 }
 EOM
 PROCESS_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $PROCESS_PARAMETERS_JSON_VALUE | sed 's/"/\\\"/g')
