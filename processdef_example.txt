@@ -1,35 +1,11 @@
 Name:
-line_counter_hadoop
+line_counter
 
-Appliance:
-hadoop
+Description:
+A simple line counter.
 
-Archive URL:
-http://dropbox.jonathanpastor.fr/archive.tgz
+String parameters:
+[ "env3" ]
 
-Executable:
-bash run_job.sh
-
-Current Working Directory:
-~
-
-Environment:
-{
-  "ENV1":"env1",
-  "ENV2":"2",
-  "ENV3":"${env3}"
-}
-
-Argv:
-[
-  "@{input_file}",
-  "parameter"
-]
-
-Output type:
-File
-
-Output parameters:
-{
-  "file_path":"output.txt"
-}
+File parameters:
+[ "input_file" ]

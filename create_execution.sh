@@ -7,7 +7,7 @@ PROCESS_DISPATCHER_URL="http://127.0.0.1:8001"
 MISTER_CLUSTER_URL="http://127.0.0.1:8002"
 CALLBACK_URL="http://requestb.in/1mstk8z1"
 
-echo "Testing the streaming architecture"
+echo "Testing the architecture"
 
 function extract_token {
 
@@ -24,7 +24,7 @@ function extract_id {
 }
 
 if [ "$1" == "" ]; then
-    echo "Please provide the id of the process as a parameter"
+    echo "Please provide the ID of the process definition as a parameter"
     exit 1
 fi
 
@@ -57,9 +57,8 @@ PROCESS_FILE_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $PROCESS_FILE_PARAMETERS_JSON_
 
 read -r -d '' PROCESS_INSTANCE_JSON_VALUE <<- EOM
 {
-  "author": 0,
   "process_definition_id": $PROCESS_ID,
-  "name": "process_instance_demo",
+  "name": "my_line_counter_instance",
   "parameters": "$PROCESS_PARAMETERS_JSON_VALUE_ESCAPED",
   "files": "$PROCESS_FILE_PARAMETERS_JSON_VALUE_ESCAPED"
 }
@@ -71,7 +70,6 @@ PROCESS_INSTANCE_ID=$(extract_id $PROCESS_INSTANCE_REGISTRATION_OUTPUT)
 
 read -r -d '' PROCESS_EXECUTION_JSON_VALUE <<- EOM
 {
-  "author": 0,
   "process_instance": $PROCESS_INSTANCE_ID,
   "callback_url": "$CALLBACK_URL",
   "resource_provisioner_token": "$MRCLUSTER_TOKEN"
