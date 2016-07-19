@@ -1,18 +1,8 @@
-Mr Cluster Token:
+Resource Provisioner Token:
 See the Token column in the Resource Provisioner panel
 
-Process ID:
-#1 - line_counter_hadoop
-
-Parameters:
-{
-  "parameter": "plop"
-}
-
-Files:
-{
-  "input_file": "http://dropbox.jonathanpastor.fr/input.txt"
-}
+Process Instance ID:
+#1 - my_line_counter_instance
 
 Callback URL:
-Any URL (ex: a http://requestb.in/ page)
+Blank or any URL (ex: a http://requestb.in/ page)

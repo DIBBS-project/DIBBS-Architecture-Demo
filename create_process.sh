@@ -7,7 +7,7 @@ PROCESS_DISPATCHER_URL="http://127.0.0.1:8001"
 MISTER_CLUSTER_URL="http://127.0.0.1:8002"
 CALLBACK_URL="http://requestb.in/1mstk8z1"
 
-echo "Testing the streaming architecture"
+echo "Testing the architecture"
 
 function extract_token {
 
@@ -27,14 +27,38 @@ function extract_id {
 # CREATION OF PROCESS
 ########################################################
 
-read -r -d '' ENVIRONMENT_JSON_VALUE <<- EOM
+read -r -d '' STRING_PARAMETERS_JSON_VALUE <<- EOM
+[
+   "env3"
+]
+EOM
+STRING_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $STRING_PARAMETERS_JSON_VALUE | sed 's/"/\\\"/g')
+
+read -r -d '' FILE_PARAMETERS_JSON_VALUE <<- EOM
+[
+   "input_file"
+]
+EOM
+FILE_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $FILE_PARAMETERS_JSON_VALUE | sed 's/"/\\\"/g')
+
+read -r -d '' PROCESS_JSON_VALUE <<- EOM
 {
-   "ENV1":"env1",
-   "ENV2":"2",
-   "ENV3":"${env3}"
+    "name": "line_counter",
+    "description": "A simple line counter.",
+    "string_parameters": "$STRING_PARAMETERS_JSON_VALUE_ESCAPED",
+    "file_parameters": "$FILE_PARAMETERS_JSON_VALUE_ESCAPED"
 }
 EOM
-ENVIRONMENT_JSON_VALUE_ESCAPED=$(echo $ENVIRONMENT_JSON_VALUE | sed 's/"/\\\"/g')
+
+echo $PROCESS_JSON_VALUE
+
+PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
+PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
+echo $PROCESS_ID
+
+########################################################
+# CREATION OF PROCESS IMPLEMENTATION
+########################################################
 
 read -r -d '' OUTPUT_PARAMS_JSON_VALUE <<- EOM
 {
@@ -51,36 +75,27 @@ read -r -d '' ARGV_JSON_VALUE <<- EOM
 EOM
 ARGV_JSON_VALUE_ESCAPED=$(echo $ARGV_JSON_VALUE | sed 's/"/\\\"/g')
 
-read -r -d '' PROCESS_JSON_VALUE <<- EOM
+read -r -d '' ENVIRONMENT_JSON_VALUE <<- EOM
 {
-    "name": "line_counter",
-    "author": 1,
-    "argv": "$ARGV_JSON_VALUE_ESCAPED",
-    "output_type":"file",
-    "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
+   "ENV1":"env1",
+   "ENV2":"2",
+   "ENV3":"\${env3}"
 }
 EOM
-
-echo $PROCESS_JSON_VALUE
-
-PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
-PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
-echo $PROCESS_ID
-
-########################################################
-# CREATION OF PROCESS IMPLEMENTATION
-########################################################
+ENVIRONMENT_JSON_VALUE_ESCAPED=$(echo $ENVIRONMENT_JSON_VALUE | sed 's/"/\\\"/g')
 
 read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
     "name": "line_counter_hadoop",
-    "author": 1,
     "appliance": "hadoop",
     "process_definition": $PROCESS_ID,
     "archive_url": "http://dropbox.jonathanpastor.fr/archive.tgz",
     "executable":"bash run_job.sh",
     "cwd":"~",
-    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED"
+    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
+    "argv": "$ARGV_JSON_VALUE_ESCAPED",
+    "output_type":"file",
+    "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
 EOM
 
