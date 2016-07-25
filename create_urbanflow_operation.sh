@@ -93,7 +93,7 @@ read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
     "archive_url": "http://dropbox.jonathanpastor.fr/dibbs.tgz",
     "executable":"sudo bash run_pipeline.sh",
     "cwd":"/root/script",
-    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
+    "environment": "{}",
     "argv": "[]",
     "output_type":"file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
