@@ -34,10 +34,10 @@ services:
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
     depends_on:
       - "process_dispatcher"
-  archictecture_portal:
+  architecture_portal:
     network_mode: "service:process_dispatcher"
     build: .
-    working_dir: /archictecture_portal
-    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8005"
+    working_dir: /architecture_portal
+    command: bash -c "python manage.py runserver 0.0.0.0:8005"
     depends_on:
       - "process_dispatcher"
