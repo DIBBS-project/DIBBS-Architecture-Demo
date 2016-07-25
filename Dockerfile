@@ -15,6 +15,8 @@ RUN git clone -b development https://github.com/chardetm/process_dispatcher.git
 RUN git clone -b development https://github.com/chardetm/appliance_registry.git
 #   resource_manager
 RUN git clone -b development https://github.com/chardetm/resource_provisioner.git
+#   architecture_portal
+RUN git clone -b development https://github.com/chardetm/architecture_portal.git
 
 # Upgrade pip
 RUN pip install --upgrade pip
@@ -25,4 +27,5 @@ RUN pip install -r process_registry/requirements.txt
 RUN pip install -r process_dispatcher/requirements.txt
 RUN pip install -r appliance_registry/requirements.txt
 RUN pip install -r resource_provisioner/requirements.txt
+RUN pip install -r architecture_portal/requirements.txt
 
