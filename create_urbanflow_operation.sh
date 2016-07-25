@@ -45,9 +45,9 @@ read -r -d '' PROCESS_JSON_VALUE <<- EOM
 {
     "name": "Urbanflow",
     "description": "Operation that runs the comlete UrbanFlow workflow on data extracted from twitter (New York city).",
-    "string_parameters": "$STRING_PARAMETERS_JSON_VALUE_ESCAPED",
+    "string_parameters": "[]",
     "logo_url": "http://dropbox.jonathanpastor.fr/dibbs/twitterapi.png",
-    "file_parameters": "$FILE_PARAMETERS_JSON_VALUE_ESCAPED"
+    "file_parameters": "[]"
 }
 EOM
 
@@ -88,13 +88,13 @@ ENVIRONMENT_JSON_VALUE_ESCAPED=$(echo $ENVIRONMENT_JSON_VALUE | sed 's/"/\\\"/g'
 read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
     "name": "urbanflow_impl",
-    "appliance": "urbanflow",
+    "appliance": "hadoop_urbanflow",
     "process_definition": $PROCESS_ID,
     "archive_url": "http://dropbox.jonathanpastor.fr/dibbs.tgz",
     "executable":"sudo bash run_pipeline.sh",
     "cwd":"/root/script",
     "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
-    "argv": "$ARGV_JSON_VALUE_ESCAPED",
+    "argv": "[]",
     "output_type":"file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
