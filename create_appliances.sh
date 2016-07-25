@@ -31,7 +31,7 @@ function extract_id {
 # CREATION OF SITES
 ########################################################
 
-SITE_NAME=KVM@TACC
+SITE_NAME=KVMatTACC
 SITE_URL=https://openstack.tacc.chameleoncloud.org:5000/v2.0
 
 if [ "$1" != "skip" ]; then
@@ -46,7 +46,7 @@ EOM
 
 
   curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
-    "name": "KVM@TACC",
+    "name": "KVMatTACC",
     "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
   }' 'http://127.0.0.1:8003/sites/'
 fi
