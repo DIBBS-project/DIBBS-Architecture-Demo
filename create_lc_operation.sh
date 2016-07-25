@@ -43,9 +43,10 @@ FILE_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $FILE_PARAMETERS_JSON_VALUE | sed 's/"
 
 read -r -d '' PROCESS_JSON_VALUE <<- EOM
 {
-    "name": "line_counter",
-    "description": "A simple line counter.",
+    "name": "LineCounter",
+    "description": "A simple line counter that can be used to demonstrate the complete architecture.",
     "string_parameters": "$STRING_PARAMETERS_JSON_VALUE_ESCAPED",
+    "logo_url": "http://dropbox.jonathanpastor.fr/dibbs/linecounter.png",
     "file_parameters": "$FILE_PARAMETERS_JSON_VALUE_ESCAPED"
 }
 EOM

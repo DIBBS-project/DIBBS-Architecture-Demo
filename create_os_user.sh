@@ -97,6 +97,11 @@ EOM
         NAME=$(echo $l | awk '{print $2}')
         IS_MASTER=$(echo $l | awk '{print $3}')
         if [ "$IS_MASTER" != "" ]; then
+            IS_MASTER="true"
+        else
+            IS_MASTER="false"
+        fi
+        if [ "$NAME" != "" ]; then
             echo "$IP->$NAME"
 
             read -r -d '' CLUSTER_JSON_VALUE <<- EOM
@@ -105,7 +110,7 @@ EOM
         "cluster_id": 1,
         "action": "nodeploy",
         "instance_ip": "$IP",
-        "is_master": true
+        "is_master": $IS_MASTER
 }
 EOM
             curl -u admin:pass -H "TOKEN: $TOKEN"  -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$CLUSTER_JSON_VALUE" "$RESOURCE_MANAGER_URL/hosts/"

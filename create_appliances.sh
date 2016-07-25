@@ -100,25 +100,43 @@ fi
 
 for FOLDER in appliances/*; do
     APPLIANCE_NAME=$(echo $FOLDER | sed 's/.*\///g' | sed 's/\..*//g')
+
+    if [ -f "$FOLDER/description.txt" ]; then
+        DESCRIPTION=$(cat $FOLDER/description.txt)
+    fi
+
+    if [ -f "$FOLDER/image.txt" ]; then
+        IMAGE=$(cat $FOLDER/image.txt)
+    fi
+
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
-  "name": "${APPLIANCE_NAME}"
+  "name": "${APPLIANCE_NAME}",
+  "logo_url": "${IMAGE}",
+  "description": "${DESCRIPTION}"
 }
 EOM
     curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances/"
 
     APPLIANCE_IMPL_NAME="${APPLIANCE_NAME}_${SITE_NAME}"
+
+    FOO="${APPLIANCE_NAME}_${SITE_NAME}_image.txt"
+    echo "trying to read $FOO"
+    if [ -f "$FOO" ]; then
+        APPLIANCE_IMPL_IMG="${APPLIANCE_NAME}_${SITE_NAME}"
+    fi
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
   "name": "$APPLIANCE_IMPL_NAME",
   "appliance": "${APPLIANCE_NAME}",
   "image_name": "$IMAGE_NAME",
-  "site": "$SITE_NAME"
+  "site": "$SITE_NAME",
+  "logo_url": "${APPLIANCE_IMPL_IMG}"
 }
 EOM
     curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances_impl/"
 
-    for FILE in $FOLDER/*; do
+    for FILE in $FOLDER/*.jinja2; do
         ACTION_NAME=$(echo $FILE | sed 's/.*\///g' | sed 's/\..*//g')
         ESCAPED_CONTENT=$(cat $FILE | sed 's/"/\\\"/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
         # CONTENT=$(cat $FILE)
