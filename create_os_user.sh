@@ -81,7 +81,7 @@ if [ -f "existing_nodes.txt" ]; then
         "appliance_impl": "urbanflow_KVM@TACC",
         "common_appliance_impl": "common_KVM@TACC",
         "user_id": 1,
-        "appliance": "urbanflow",
+        "appliance": "hadoop_urbanflow",
         "master_node_ip": "129.114.110.233",
         "master_node_ip": "1",
         "hosts_ips": [
