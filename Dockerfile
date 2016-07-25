@@ -16,7 +16,7 @@ RUN git clone -b development https://github.com/chardetm/appliance_registry.git
 #   resource_manager
 RUN git clone -b development https://github.com/chardetm/resource_provisioner.git
 #   architecture_portal
-RUN git clone -b development https://github.com/chardetm/architecture_portal.git
+RUN git clone -b master https://github.com/chardetm/architecture_portal.git
 
 # Upgrade pip
 RUN pip install --upgrade pip
