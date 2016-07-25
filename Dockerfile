@@ -27,5 +27,5 @@ RUN pip install -r process_registry/requirements.txt
 RUN pip install -r process_dispatcher/requirements.txt
 RUN pip install -r appliance_registry/requirements.txt
 RUN pip install -r resource_provisioner/requirements.txt
-RUN pip install -r architecture_portal/requirements.txt
+#RUN pip install -r architecture_portal/requirements.txt
 
