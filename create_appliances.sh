@@ -121,10 +121,14 @@ EOM
     APPLIANCE_IMPL_NAME="${APPLIANCE_NAME}_${SITE_NAME}"
 
     FOO="${APPLIANCE_NAME}_${SITE_NAME}_image.txt"
-    echo "trying to read $FOO"
-    if [ -f "$FOO" ]; then
-        APPLIANCE_IMPL_IMG="${APPLIANCE_NAME}_${SITE_NAME}"
+    echo "trying to read $FOLDER/$FOO"
+    echo "trying to read (2) $FOLDER/$FOO"
+    if [ -f "$FOLDER/$FOO" ]; then
+        APPLIANCE_IMPL_IMG=$(cat "$FOLDER/$FOO")
     fi
+    echo "\n-----"
+    echo "appliance_impl's logo_url: ${APPLIANCE_IMPL_IMG}"
+    echo "-----\n"
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
   "name": "$APPLIANCE_IMPL_NAME",
