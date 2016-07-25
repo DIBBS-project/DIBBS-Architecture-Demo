@@ -73,4 +73,45 @@ rm -rf cipher.txt
 # echo "MRCLUSTER_TOKEN: $TOKEN"
 echo ""
 
+if [ -f "existing_nodes.txt" ]; then
+    # Create cluster
+    read -r -d '' CLUSTER_JSON_VALUE <<- EOM
+{
+        "name": "MyHadoopCluster",
+        "appliance_impl": "urbanflow_KVM@TACC",
+        "common_appliance_impl": "common_KVM@TACC",
+        "user_id": 1,
+        "appliance": "urbanflow",
+        "master_node_ip": "129.114.110.233",
+        "master_node_ip": "1",
+        "hosts_ips": [
+            "129.114.110.233"
+        ]
+}
+EOM
+    curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$CLUSTER_JSON_VALUE" "$RESOURCE_MANAGER_URL/clusters/"
+
+    # Create nodes
+    while read l; do
+        IP=$(echo $l | awk '{print $1}')
+        NAME=$(echo $l | awk '{print $2}')
+        IS_MASTER=$(echo $l | awk '{print $3}')
+        if [ "$IS_MASTER" != "" ]; then
+            echo "$IP->$NAME"
+
+            read -r -d '' CLUSTER_JSON_VALUE <<- EOM
+{
+        "name": "$NAME",
+        "cluster_id": 1,
+        "action": "nodeploy",
+        "instance_ip": "$IP",
+        "is_master": true
+}
+EOM
+            curl -u admin:pass -H "TOKEN: $TOKEN"  -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$CLUSTER_JSON_VALUE" "$RESOURCE_MANAGER_URL/hosts/"
+
+        fi
+    done <existing_nodes.txt
+fi
+
 exit 0
