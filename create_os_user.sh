@@ -78,8 +78,8 @@ if [ -f "existing_nodes.txt" ]; then
     read -r -d '' CLUSTER_JSON_VALUE <<- EOM
 {
         "name": "MyHadoopCluster",
-        "appliance_impl": "urbanflow_KVM@TACC",
-        "common_appliance_impl": "common_KVM@TACC",
+        "appliance_impl": "urbanflow_KVMatTACC",
+        "common_appliance_impl": "common_KVMatTACC",
         "user_id": 1,
         "appliance": "hadoop_urbanflow",
         "master_node_ip": "129.114.110.233",

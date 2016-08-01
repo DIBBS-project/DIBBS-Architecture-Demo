@@ -31,7 +31,7 @@ function extract_id {
 # CREATION OF SITES
 ########################################################
 
-SITE_NAME=KVM@TACC
+SITE_NAME=KVMatTACC
 SITE_URL=https://openstack.tacc.chameleoncloud.org:5000/v2.0
 
 if [ "$1" != "skip" ]; then
@@ -46,7 +46,7 @@ EOM
 
 
   curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
-    "name": "KVM@TACC",
+    "name": "KVMatTACC",
     "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
   }' 'http://127.0.0.1:8003/sites/'
 fi
@@ -158,6 +158,94 @@ EOM
         echo "============================================"
         curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$SCRIPT_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/scripts/"
     done
+
+  if [ "$APPLIANCE_NAME" == "hadoop" ]; then
+
+        APPLIANCE_IMPL_NAME="${APPLIANCE_NAME}_BaremetalAtUC"
+
+    FOO="${APPLIANCE_NAME}_${SITE_NAME}_image.txt"
+    echo "trying to read $FOLDER/$FOO"
+    echo "trying to read (2) $FOLDER/$FOO"
+    if [ -f "$FOLDER/$FOO" ]; then
+        APPLIANCE_IMPL_IMG=$(cat "$FOLDER/$FOO")
+    fi
+    echo "\n-----"
+    echo "appliance_impl's logo_url: ${APPLIANCE_IMPL_IMG}"
+    echo "-----\n"
+    read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
+{
+  "name": "$APPLIANCE_IMPL_NAME",
+  "appliance": "${APPLIANCE_NAME}",
+  "image_name": "$IMAGE_NAME",
+  "site": "$SITE_NAME",
+  "logo_url": "${APPLIANCE_IMPL_IMG}"
+}
+EOM
+    curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances_impl/"
+
+    for FILE in $FOLDER/*.jinja2; do
+        ACTION_NAME=$(echo $FILE | sed 's/.*\///g' | sed 's/\..*//g')
+        ESCAPED_CONTENT=$(cat $FILE | sed 's/"/\\\"/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
+        # CONTENT=$(cat $FILE)
+        # ESCAPED_CONTENT=$(printf '%q' $CONTENT)
+
+        read -r -d '' SCRIPT_JSON_VALUE <<- EOM
+{
+  "code": "${ESCAPED_CONTENT}",
+  "appliance": "${APPLIANCE_IMPL_NAME}",
+  "action": "${ACTION_NAME}"
+}
+EOM
+        echo "============================================"
+        echo "$SCRIPT_JSON_VALUE"
+        echo "============================================"
+        curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$SCRIPT_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/scripts/"
+    done
+  fi
+
+    if [ "$APPLIANCE_NAME" == "hadoop" ]; then
+
+        APPLIANCE_IMPL_NAME="${APPLIANCE_NAME}_BaremetalAtTACC"
+
+    FOO="${APPLIANCE_NAME}_${SITE_NAME}_image.txt"
+    echo "trying to read $FOLDER/$FOO"
+    echo "trying to read (2) $FOLDER/$FOO"
+    if [ -f "$FOLDER/$FOO" ]; then
+        APPLIANCE_IMPL_IMG=$(cat "$FOLDER/$FOO")
+    fi
+    echo "\n-----"
+    echo "appliance_impl's logo_url: ${APPLIANCE_IMPL_IMG}"
+    echo "-----\n"
+    read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
+{
+  "name": "$APPLIANCE_IMPL_NAME",
+  "appliance": "${APPLIANCE_NAME}",
+  "image_name": "$IMAGE_NAME",
+  "site": "$SITE_NAME",
+  "logo_url": "${APPLIANCE_IMPL_IMG}"
+}
+EOM
+    curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$APPLIANCE_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/appliances_impl/"
+
+    for FILE in $FOLDER/*.jinja2; do
+        ACTION_NAME=$(echo $FILE | sed 's/.*\///g' | sed 's/\..*//g')
+        ESCAPED_CONTENT=$(cat $FILE | sed 's/"/\\\"/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
+        # CONTENT=$(cat $FILE)
+        # ESCAPED_CONTENT=$(printf '%q' $CONTENT)
+
+        read -r -d '' SCRIPT_JSON_VALUE <<- EOM
+{
+  "code": "${ESCAPED_CONTENT}",
+  "appliance": "${APPLIANCE_IMPL_NAME}",
+  "action": "${ACTION_NAME}"
+}
+EOM
+        echo "============================================"
+        echo "$SCRIPT_JSON_VALUE"
+        echo "============================================"
+        curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$SCRIPT_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/scripts/"
+    done
+  fi
 done
 
 echo ""
