@@ -1,8 +1,8 @@
-#!/bon/bash
+#!/bin/bash
 
 if [ "$#" -ne 2 ]; then
     if [ "$#" -ne 3 ]; then
-        echo "Usage: $0 <username> <project"
+        echo "Usage: $0 <username> <project>"
         exit 1
     fi
 fi

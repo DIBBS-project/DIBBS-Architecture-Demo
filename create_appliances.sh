@@ -109,6 +109,10 @@ for FOLDER in appliances/*; do
         IMAGE=$(cat $FOLDER/image.txt)
     fi
 
+    if [ -f "$FOLDER/image_name.txt" ]; then
+        IMAGE_NAME=$(cat $FOLDER/image_name.txt)
+    fi
+
     read -r -d '' APPLIANCE_JSON_VALUE <<- EOM
 {
   "name": "${APPLIANCE_NAME}",
