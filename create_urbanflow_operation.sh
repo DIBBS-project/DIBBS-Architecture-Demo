@@ -90,12 +90,9 @@ read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
     "name": "urbanflow_impl",
     "appliance": "hadoop_urbanflow",
     "process_definition": $PROCESS_ID,
-    "archive_url": "http://dropbox.jonathanpastor.fr/dibbs.tgz",
-    "executable":"sudo bash run_pipeline.sh",
-    "cwd":"/root/script",
-    "environment": "{}",
-    "argv": "[]",
-    "output_type":"file",
+    "cwd": "/root/script",
+    "script": "curl http://dropbox.jonathanpastor.fr/dibbs.tgz > __archive.tar.gz; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; sudo bash run_pipeline.sh",
+    "output_type": "file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
 EOM
