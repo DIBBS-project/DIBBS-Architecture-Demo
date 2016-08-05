@@ -29,7 +29,8 @@ function extract_id {
 
 read -r -d '' STRING_PARAMETERS_JSON_VALUE <<- EOM
 [
-   "env3"
+   "env_var",
+   "parameter"
 ]
 EOM
 STRING_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $STRING_PARAMETERS_JSON_VALUE | sed 's/"/\\\"/g')
@@ -63,39 +64,19 @@ echo $PROCESS_ID
 
 read -r -d '' OUTPUT_PARAMS_JSON_VALUE <<- EOM
 {
-   "file_path":"output.txt"
+   "file_path": "output.txt"
 }
 EOM
 OUTPUT_PARAMS_JSON_VALUE_ESCAPED=$(echo $OUTPUT_PARAMS_JSON_VALUE | sed 's/"/\\\"/g')
-
-read -r -d '' ARGV_JSON_VALUE <<- EOM
-[
-   "@{input_file}",
-   "parameter"
-]
-EOM
-ARGV_JSON_VALUE_ESCAPED=$(echo $ARGV_JSON_VALUE | sed 's/"/\\\"/g')
-
-read -r -d '' ENVIRONMENT_JSON_VALUE <<- EOM
-{
-   "ENV1":"env1",
-   "ENV2":"2",
-   "ENV3":"\${env3}"
-}
-EOM
-ENVIRONMENT_JSON_VALUE_ESCAPED=$(echo $ENVIRONMENT_JSON_VALUE | sed 's/"/\\\"/g')
 
 read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
     "name": "line_counter_hadoop",
     "appliance": "hadoop",
     "process_definition": $PROCESS_ID,
-    "archive_url": "http://dropbox.jonathanpastor.fr/archive.tgz",
-    "executable":"bash run_job.sh",
-    "cwd":"~",
-    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
-    "argv": "$ARGV_JSON_VALUE_ESCAPED",
-    "output_type":"file",
+    "cwd": "~",
+    "script": "export ENV_VAR=!{env_var} ; curl http://dropbox.jonathanpastor.fr/archive.tgz > __archive.tar.gz ; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
+    "output_type": "file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
 EOM

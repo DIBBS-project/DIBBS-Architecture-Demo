@@ -3,6 +3,7 @@
 # Configure SSH to accept a new key
 mkdir -p /home/{{ user }}/.ssh
 echo "{{ public_key }}" >> /home/{{ user }}/.ssh/authorized_keys
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDwvz1Fegi7p20f8p+l+Do77rNRpNpaG7lJ7u08gCLmUDc7uW+AVbM/hhTeVKs2Fi3esiZTrduR1Ggt8EWQZe0URwjtBu5+t7nOQM71lb2sH2/kH91V2/3hR5/acD3Ct7fkfjnyN0vJXvnj9T7S9msXYYwckt9HhVfv5D5hy0yPWxX9WqgOnvDKQYjcKu0Kft46TlEywPQ/s5+Oscs7mt6EK6cWg2pXJCsrUhqdA1Y7fLNBSzPm4n1dgz8DqGQSWdfDFadlGNIjHxOBFzkC9JYxPRagvXOjjODdsapw+CEe3JRQDiOOE9W/tjD/Gc0rPnqSX9ugVrmnIm2Wt02Pg+/F chardetm@Jonathans-MBP.attlocal.net" >> /home/{{ user }}/.ssh/authorized_keys
 
 sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/os/x86_64/
 sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/updates/x86_64/
