@@ -38,6 +38,7 @@ if [ "$1" != "skip" ]; then
   read -r -d '' ACTION_JSON_VALUE <<- EOM
 {
   "name": "$SITE_NAME",
+  "type": "openstack",
   "contact_url": "$SITE_URL"
 }
 EOM
@@ -47,6 +48,7 @@ EOM
 
   curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
     "name": "KVMatTACC",
+    "type": "openstack",
     "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
   }' 'http://127.0.0.1:8003/sites/'
 fi
