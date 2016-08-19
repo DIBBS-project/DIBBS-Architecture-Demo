@@ -1,1 +1,1 @@
-CC-CENTOS-dibbs
+CENTOS-7-HADOOP

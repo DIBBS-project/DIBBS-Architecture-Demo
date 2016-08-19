@@ -8,7 +8,8 @@ RESOURCE_MANAGER_URL="http://127.0.0.1:8002"
 APPLIANCE_REGISTRY_URL="http://127.0.0.1:8003"
 CALLBACK_URL="http://requestb.in/1mstk8z1"
 
-IMAGE_NAME="CC-CENTOS-dibbs"
+#IMAGE_NAME="CC-CENTOS-dibbs"
+IMAGE_NAME="CENTOS-7-HADOOP"
 
 echo "Testing the architecture"
 
