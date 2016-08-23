@@ -119,6 +119,106 @@ function hadoop_not_running() {
     fi
 }
 
+function install_and_configure_agents() {
+    pushd /usr/hadoop
+
+    # Start a screen for the agents
+    sudo yum install -y screen || true
+
+    SCREEN_NAME="agents"
+    COMMON_SCREEN_ARGS="-S $SCREEN_NAME -X screen"
+    screen -AdmS $SCREEN_NAME
+
+
+    ############################################################################
+    # Install Process Manager Agent
+    ############################################################################
+    git clone https://github.com/DIBBS-project/process_manager_agent.git
+    pushd process_manager_agent
+
+    sudo yum install -y python-pip
+    sudo pip install -r requirements.txt
+
+    if rpm -q git
+    then
+        # do nothing as git is already installed
+        :
+    else
+        sudo yum install -y git
+    fi
+    cat > configure_webservice.sh <<- EOM
+#!/bin/bash
+
+bash reset_app.sh
+python manage.py runserver 0.0.0.0:8021
+
+popd
+EOM
+
+    screen $COMMON_SCREEN_ARGS -t pm_agent -dm bash configure_webservice.sh
+    popd
+
+    ############################################################################
+    # Install Resource Manager Agent
+    ############################################################################
+    git clone https://github.com/DIBBS-project/resource_manager_agent.git
+    pushd resource_manager_agent
+
+    sudo yum install -y python-pip
+    sudo pip install -r requirements.txt
+
+    if rpm -q git
+    then
+        # do nothing as git is already installed
+        :
+    else
+        sudo yum install -y git
+    fi
+    cat > configure_webservice.sh <<- EOM
+#!/bin/bash
+
+bash reset_app.sh
+python manage.py runserver 0.0.0.0:8022
+
+popd
+EOM
+
+    screen $COMMON_SCREEN_ARGS -t rm_agent -dm bash configure_webservice.sh
+    popd
+
+
+    ############################################################################
+    # Install Hadoop Webservice (legacy)
+    ############################################################################
+    git clone https://github.com/badock/ChameleonHadoopWebservice.git
+    pushd ChameleonHadoopWebservice
+
+    sudo yum install -y python-pip
+    sudo pip install -r requirements.txt
+
+    if rpm -q git
+    then
+        # do nothing as git is already installed
+        :
+    else
+        sudo yum install -y git
+    fi
+    cat > configure_webservice.sh <<- EOM
+#!/bin/bash
+
+bash reset_app.sh
+python manage.py runserver 0.0.0.0:8000
+
+popd
+EOM
+
+    screen $COMMON_SCREEN_ARGS -t hadoop_agent -dm bash configure_webservice.sh
+    popd
+
+    popd
+}
+
+
 install_hadoop
 sudo bash /usr/hadoop/start_hadoop.sh
 sleep 10
@@ -126,29 +226,5 @@ sleep 10
 touch step0
 
 {% if is_master %}
-
-cat > configure_webservice.sh <<- EOM
-#!/bin/bash
-
-if rpm -q git
-then
-  # do nothing as git is already installed
-  :
-else
-  sudo yum install -y git
-fi
-
-git clone https://github.com/badock/ChameleonHadoopWebservice.git
-pushd ChameleonHadoopWebservice
-
-sudo yum install -y python-pip
-sudo pip install -r requirements.txt
-bash reset_app.sh
-
-python manage.py runserver 0.0.0.0:8000
-
-popd
-EOM
-
-screen -dm bash configure_webservice.sh # 2>&1 | tee ~/configure_node.log
+install_and_configure_agents
 {% endif %}
