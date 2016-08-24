@@ -4,8 +4,28 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+rirjZpg/ov3cBd6hhl0HtinbHkAS70/WCc
 " >> ~/.ssh/authorized_keys
 
 function clean_hadoop() {
-    sudo rm -rf hadoop
-    sudo rm -rf hadoop.*.tgz
+    echo "Cleaning running hadoop services"
+    ps aux | grep java  | grep -v grep | awk '{print $2}' | sudo xargs kill -9
+
+    echo "Cleaning existing data in hdfs"
+    sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
+
+    echo "Cleaning hadoop logs"
+    sudo rm -rf /usr/hadoop/hadoop/logs/*
+}
+
+function repair_permissions() {
+
+    # Repair permissions
+    pushd /usr/hadoop
+
+    sudo chmod 777 start_hadoop.sh
+    sudo chmod 777 reload.sh
+
+    sudo chmod 777 hadoop/etc/hadoop
+    sudo chmod 777 hadoop/etc/hadoop/*
+
+    popd
 }
 
 function install_hadoop() {
@@ -18,11 +38,6 @@ function install_hadoop() {
     pushd /usr/hadoop
     echo "{{node_name}}" > hadoop/etc/hadoop/slaves
     echo "{{ master_name }}" > hadoop/etc/hadoop/masters
-    {% if is_master %}
-    # Format namenode
-    cd /usr/hadoop
-    sudo $HADOOP_HOME/bin/hdfs namenode -format
-    {% endif %}
 
     # Create script to run Hadoop services
     cat > start_hadoop.sh <<- EOM
@@ -95,14 +110,18 @@ EOM
  </property>
 </configuration>
 EOM
+
+    {% if is_master %}
+    # Format namenode
+    sudo $HADOOP_HOME/bin/hdfs namenode -format
+    {% endif %}
+
     popd
 
     pushd ~
     sudo cp hadoop_ssh/id_rsa.pub /root/.ssh/id_rsa.pub
     sudo cp hadoop_ssh/id_rsa /root/.ssh/id_rsa
     popd
-
-    sleep 10
 }
 
 function hadoop_not_running() {
@@ -149,13 +168,13 @@ function install_and_configure_agents() {
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
+pushd /usr/hadoop/process_manager_agent
 bash reset_app.sh
 python manage.py runserver 0.0.0.0:8021
 
-popd
 EOM
 
-    screen $COMMON_SCREEN_ARGS -t pm_agent -dm bash configure_webservice.sh
+    screen $COMMON_SCREEN_ARGS -t pm_agent -dm bash /usr/hadoop/process_manager_agent/configure_webservice.sh
     popd
 
     ############################################################################
@@ -177,13 +196,13 @@ EOM
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
+pushd /usr/hadoop/resource_manager_agent
 bash reset_app.sh
 python manage.py runserver 0.0.0.0:8022
 
-popd
 EOM
 
-    screen $COMMON_SCREEN_ARGS -t rm_agent -dm bash configure_webservice.sh
+    screen $COMMON_SCREEN_ARGS -t rm_agent -dm bash /usr/hadoop/resource_manager_agent/configure_webservice.sh
     popd
 
 
@@ -206,24 +225,22 @@ EOM
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
+pushd /usr/hadoop/ChameleonHadoopWebservice
 bash reset_app.sh
 python manage.py runserver 0.0.0.0:8000
 
-popd
 EOM
 
-    screen $COMMON_SCREEN_ARGS -t hadoop_agent -dm bash configure_webservice.sh
+    screen $COMMON_SCREEN_ARGS -t hadoop_agent -dm bash /usr/hadoop/ChameleonHadoopWebservice/configure_webservice.sh
     popd
 
     popd
 }
 
-
+clean_hadoop
+repair_permissions
 install_hadoop
 sudo bash /usr/hadoop/start_hadoop.sh
-sleep 10
-
-touch step0
 
 {% if is_master %}
 install_and_configure_agents
