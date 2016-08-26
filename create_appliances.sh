@@ -32,22 +32,46 @@ function extract_id {
 # CREATION OF SITES
 ########################################################
 
-SITE_NAME=KVMatTACC
-SITE_URL=https://openstack.tacc.chameleoncloud.org:5000/v2.0
+# # KVMatTACC
+# SITE_NAME=KVMatTACC
+# SITE_URL=https://openstack.tacc.chameleoncloud.org:5000/v2.0
+
+# if [ "$1" != "skip" ]; then
+#   read -r -d '' ACTION_JSON_VALUE <<- EOM
+# {
+#   "name": "$SITE_NAME",
+#   "type": "openstack",
+#   "contact_url": "$SITE_URL"
+# }
+# EOM
+#   ACTION_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$ACTION_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/sites/")
+
+
+
+#   curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+#     "name": "KVMatTACC",
+#     "type": "openstack",
+#     "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
+#   }' 'http://127.0.0.1:8003/sites/'
+# fi
+
+# KVMatRoger
+SITE_NAME=KVMatRoger
+SITE_URL=http://roger-openstack.ncsa.illinois.edu:5000/v2.0
 
 if [ "$1" != "skip" ]; then
-  read -r -d '' ACTION_JSON_VALUE <<- EOM
+    read -r -d '' ACTION_JSON_VALUE <<- EOM
 {
   "name": "$SITE_NAME",
   "type": "openstack",
   "contact_url": "$SITE_URL"
 }
 EOM
-  ACTION_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$ACTION_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/sites/")
+    ACTION_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$ACTION_JSON_VALUE" "$APPLIANCE_REGISTRY_URL/sites/")
 
 
 
-  curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
     "name": "KVMatTACC",
     "type": "openstack",
     "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0"

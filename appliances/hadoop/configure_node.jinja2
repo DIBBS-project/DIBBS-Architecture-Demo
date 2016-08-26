@@ -39,21 +39,26 @@ function install_hadoop() {
     echo "{{node_name}}" > hadoop/etc/hadoop/slaves
     echo "{{ master_name }}" > hadoop/etc/hadoop/masters
 
-    # Create script to run Hadoop services
-    cat > start_hadoop.sh <<- EOM
-#!/bin/bash
-source /etc/environment
-{% if is_master %}
-bash $HADOOP_HOME/sbin/start-dfs.sh
-bash $HADOOP_HOME/sbin/start-yarn.sh
-{% else %}
-bash $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
-{% endif %}
+    # Export variables
+    cat >> .bashrc <<- EOM
+{#export HADOOP_HOME=/home/{{ user }}/hadoop#}
+export HADOOP_HOME=/usr/hadoop/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk/
 EOM
-    popd
+
+    source .bashrc
+    sudo cp .bashrc /etc/environment
+
+    cd hadoop/etc/hadoop
 
     # Configure Hadoop
-    pushd /usr/hadoop/hadoop/etc/hadoop
     cat > core-site.xml <<- EOM
 <configuration>
 <property>
@@ -113,14 +118,36 @@ EOM
 
     {% if is_master %}
     # Format namenode
+    cd /usr/hadoop
     sudo $HADOOP_HOME/bin/hdfs namenode -format
     {% endif %}
 
-    popd
+    # Run Hadoop cluster
+    cd /usr/hadoop/
+    cat > start_hadoop.sh <<- EOM
+#!/bin/bash
+source /etc/environment
+{% if is_master %}
+bash $HADOOP_HOME/sbin/start-dfs.sh
+bash $HADOOP_HOME/sbin/start-yarn.sh
+{% else %}
+bash $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
+bash $HADOOP_HOME/sbin/yarn-daemon.sh start resourcemanager
+bash $HADOOP_HOME/sbin/yarn-daemon.sh start nodemanager
+{% endif %}
+EOM
 
     pushd ~
     sudo cp hadoop_ssh/id_rsa.pub /root/.ssh/id_rsa.pub
     sudo cp hadoop_ssh/id_rsa /root/.ssh/id_rsa
+    popd
+
+    screen -dm sudo bash start_hadoop.sh
+
+    cat > reload.sh <<- EOM
+#!/bin/bash
+EOM
+
     popd
 }
 
@@ -148,29 +175,31 @@ function install_and_configure_agents() {
     COMMON_SCREEN_ARGS="-S $SCREEN_NAME -X screen"
     screen -AdmS $SCREEN_NAME
 
+    ############################################################################
+    # Cloning Agents projects and preparing dependencies
+    ############################################################################
+    git clone https://github.com/DIBBS-project/process_manager_agent.git
+    git clone https://github.com/DIBBS-project/resource_manager_agent.git
+    git clone https://github.com/badock/ChameleonHadoopWebservice.git
+
+    sudo yum install -y python-pip
+
+    sudo pip install -r process_manager_agent/requirements.txt
+    sudo pip install -r resource_manager_agent/requirements.txt
+    sudo pip install -r ChameleonHadoopWebservice/requirements.txt
 
     ############################################################################
     # Install Process Manager Agent
     ############################################################################
-    git clone https://github.com/DIBBS-project/process_manager_agent.git
+
     pushd process_manager_agent
 
-    sudo yum install -y python-pip
-    sudo pip install -r requirements.txt
-
-    if rpm -q git
-    then
-        # do nothing as git is already installed
-        :
-    else
-        sudo yum install -y git
-    fi
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
 pushd /usr/hadoop/process_manager_agent
-bash reset_app.sh
-python manage.py runserver 0.0.0.0:8021
+bash reset.sh
+python manage.py runserver 0.0.0.0:8011
 
 EOM
 
@@ -180,25 +209,15 @@ EOM
     ############################################################################
     # Install Resource Manager Agent
     ############################################################################
-    git clone https://github.com/DIBBS-project/resource_manager_agent.git
+
     pushd resource_manager_agent
 
-    sudo yum install -y python-pip
-    sudo pip install -r requirements.txt
-
-    if rpm -q git
-    then
-        # do nothing as git is already installed
-        :
-    else
-        sudo yum install -y git
-    fi
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
 pushd /usr/hadoop/resource_manager_agent
-bash reset_app.sh
-python manage.py runserver 0.0.0.0:8022
+bash reset.sh
+python manage.py runserver 0.0.0.0:8012
 
 EOM
 
@@ -209,19 +228,9 @@ EOM
     ############################################################################
     # Install Hadoop Webservice (legacy)
     ############################################################################
-    git clone https://github.com/badock/ChameleonHadoopWebservice.git
+
     pushd ChameleonHadoopWebservice
 
-    sudo yum install -y python-pip
-    sudo pip install -r requirements.txt
-
-    if rpm -q git
-    then
-        # do nothing as git is already installed
-        :
-    else
-        sudo yum install -y git
-    fi
     cat > configure_webservice.sh <<- EOM
 #!/bin/bash
 
@@ -240,7 +249,118 @@ EOM
 clean_hadoop
 repair_permissions
 install_hadoop
+
+# Configure Yarn Hadoop
+cat > yarn-site.xml <<- EOM
+<configuration>
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>0.0.0.0:8088</value>
+  </property>
+ <property>
+  <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+  <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+ </property>
+ <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>{{master_name}}</value>
+  </property>
+
+  <property>
+<name>yarn.resourcemanager.address</name>
+<value>{{master_name}}:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.scheduler.address</name>
+<value>{{master_name}}:8030</value>
+</property>
+<property>
+<name>yarn.resourcemanager.resource-tracker.address</name>
+<value>{{master_name}}:8031</value>
+</property>
+
+</configuration>
+EOM
+sudo cp yarn-site.xml /usr/hadoop/hadoop/etc/hadoop/yarn-site.xml
+
+{% if is_master %}
+# echo "Master is formating hdfs"
+# sudo /usr/hadoop/hadoop/bin/hdfs namenode -format
+{% else %}
+echo "Slave is preparing configuration files"
+# Configure Hadoop
+cat > core-site.xml <<- EOM
+<configuration>
+<property>
+  <name>fs.default.name</name>
+    <value>hdfs://{{ master_name }}:9000</value>
+</property>
+</configuration>
+EOM
+sudo cp core-site.xml /usr/hadoop/hadoop/etc/hadoop/core-site.xml
+
+# Configure Yarn Hadoop
+cat > yarn-site.xml <<- EOM
+<configuration>
+ <property>
+  <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+  <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+ </property>
+ <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>{{master_name}}</value>
+  </property>
+
+  <property>
+<name>yarn.resourcemanager.address</name>
+<value>{{master_name}}:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.scheduler.address</name>
+<value>{{master_name}}:8030</value>
+</property>
+<property>
+<name>yarn.resourcemanager.resource-tracker.address</name>
+<value>{{master_name}}:8031</value>
+</property>
+
+</configuration>
+EOM
+sudo cp yarn-site.xml /usr/hadoop/hadoop/etc/hadoop/yarn-site.xml
+
+
+
+# Configure hadoop node
+sudo echo "{{node_name}}" > hadoop/etc/hadoop/slaves
+sudo echo "{{ master_name }}" > hadoop/etc/hadoop/masters
+
+# scp hadoop/etc/hadoop/slaves {{master_name}}:/usr/hadoop/hadoop/etc/hadoop/slaves
+
+echo "Cleaning running hadoop services"
+ps aux | grep java  | grep -v grep | awk '{print $2}' | sudo xargs kill -9
+
+echo "Cleaning existing data in hdfs"
+sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
+sudo rm -rf /home/hadoop/hadoopdata/hdfs/namenode
+
+echo "Cleaning hadoop logs"
+sudo rm -rf /usr/hadoop/hadoop/logs/*
+
+sleep 5
+
+{% endif %}
+
+echo "Starting Hadoop services"
 sudo bash /usr/hadoop/start_hadoop.sh
+echo "done"
 
 {% if is_master %}
 install_and_configure_agents
