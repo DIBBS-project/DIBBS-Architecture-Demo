@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Configure hadoop node
-echo "{{node_name}}" >> hadoop/etc/hadoop/slaves
+echo "{{node_name}}" >> /usr/hadoop/hadoop/etc/hadoop/slaves
+echo "{{ master_name }}" > /usr/hadoop/hadoop/etc/hadoop/masters
 
-echo {{ master_name }} > hadoop/etc/hadoop/masters
+# Balance hdfs
+/usr/hadoop/hadoop/bin/hdfs balancer -threshold 50
