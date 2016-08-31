@@ -53,7 +53,7 @@ EOM
 
 echo $PROCESS_JSON_VALUE
 
-PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
+PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/operations/")
 PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
 echo $PROCESS_ID
 
@@ -89,7 +89,7 @@ read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
     "name": "urbanflow_impl",
     "appliance": "hadoop_urbanflow",
-    "process_definition": $PROCESS_ID,
+    "operation": $PROCESS_ID,
     "cwd": "/root/script",
     "script": "curl http://dropbox.jonathanpastor.fr/dibbs.tgz > __archive.tar.gz; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; sudo bash run_pipeline.sh",
     "output_type": "file",
@@ -99,7 +99,7 @@ EOM
 
 echo $PROCESS_IMPL_JSON_VALUE
 
-PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/processimpls/")
+PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/operationversions/")
 PROCESS_IMPL_ID=$(extract_id $PROCESS_IMPL_REGISTRATION_OUTPUT)
 echo $PROCESS_IMPL_ID
 
