@@ -14,9 +14,10 @@ from requests.auth import HTTPBasicAuth
 infrastructure_name = "KVMatTACC"
 infrastructure_url = "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
 
-# # KVM@Roger
-# infrastructure_name = "KVMatRoger"
-# infrastructure_url = "http://roger-openstack.ncsa.illinois.edu:5000/v2.0"
+for i in range(0, len(argv))
+   if argv[i] == "--run-on-roger":
+     infrastructure_name = "KVMatRoger"
+     infrastructure_url = "http://roger-openstack.ncsa.illinois.edu:5000/v2.0"
 
 appliance_registry_url = "http://127.0.0.1:8003"
 resource_manager_url = "http://127.0.0.1:8002"
