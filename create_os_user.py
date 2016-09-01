@@ -10,6 +10,10 @@ from requests.auth import HTTPBasicAuth
 
 infrastructure_name = "KVMatTACC"
 
+for i in range(0, len(sys.argv)):
+   if sys.argv[i] == "--run-on-roger":
+     infrastructure_name = "KVMatRoger"
+
 if __name__ == "__main__":
    """Create a user that is able to request Cloud Computing resources"""
 

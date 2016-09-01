@@ -14,8 +14,8 @@ from requests.auth import HTTPBasicAuth
 infrastructure_name = "KVMatTACC"
 infrastructure_url = "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
 
-for i in range(0, len(argv))
-   if argv[i] == "--run-on-roger":
+for i in range(0, len(sys.argv)):
+   if sys.argv[i] == "--run-on-roger":
      infrastructure_name = "KVMatRoger"
      infrastructure_url = "http://roger-openstack.ncsa.illinois.edu:5000/v2.0"
 
@@ -91,33 +91,33 @@ if __name__ == "__main__":
          for site in sites:
             appliance_impl_name = "%s_%s" % (appliance_name, site) if appliance_name != "common" else "common"
             appliance_impl_logo_address = "%s/%s_image.txt" % (complete_path, appliance_impl_name)
-            if os.path.isfile(appliance_impl_logo_address) or appliance_impl_name == "common":
-               appliance_impl_dict = {
-                  "name": appliance_impl_name,
-                  "appliance": appliance_name,
-                  "image_name": appliance_metadata["image_name"] if appliance_name != "common" else "n.a.",
-                  "site": site,
-                  "logo_url": appliance_impl_logo_address
-               }
-               r = requests.post("%s/appliances_impl/" % (appliance_registry_url), json=appliance_impl_dict, auth=HTTPBasicAuth('admin', 'pass'))
-               print("  - creation of appliance_impl %s => %s %s" % (appliance_impl_name, r.status_code, r.json() if r.status_code >= 400 else ""))
+            # if os.path.isfile(appliance_impl_logo_address) or appliance_impl_name == "common":
+            appliance_impl_dict = {
+               "name": appliance_impl_name,
+               "appliance": appliance_name,
+               "image_name": appliance_metadata["image_name"] if appliance_name != "common" else "n.a.",
+               "site": site,
+               "logo_url": appliance_impl_logo_address
+            }
+            r = requests.post("%s/appliances_impl/" % (appliance_registry_url), json=appliance_impl_dict, auth=HTTPBasicAuth('admin', 'pass'))
+            print("  - creation of appliance_impl %s => %s %s" % (appliance_impl_name, r.status_code, r.json() if r.status_code >= 400 else ""))
 
-               # Create an instance of each script for each appliance implementation
-               for script_dirname, script_dirnames, script_filenames in os.walk("%s" % (complete_path)):
-                  for script_filename in script_filenames:
-                     script_file_address = "%s/%s" % (complete_path, script_filename)
-                     if not ".jinja2" in script_file_address:
-                        continue
-                     with open(script_file_address) as script_f:
-                        action_name = re.sub(r'.*/', '', re.sub(r'.jinja2', '', script_file_address))
-                        print(action_name)
-                        script_content = script_f.read()
-                        script_dict = {
-                           "code": script_content,
-                           "appliance": appliance_impl_name if appliance_name != "common" else appliance_name,
-                           "action": action_name
-                        }
-                        r = requests.post("%s/scripts/" % (appliance_registry_url), json=script_dict, auth=HTTPBasicAuth('admin', 'pass'))
-                        print("    - creation of script_impl %s => %s %s" % (action_name, r.status_code, r.json() if r.status_code >= 400 else ""))
+            # Create an instance of each script for each appliance implementation
+            for script_dirname, script_dirnames, script_filenames in os.walk("%s" % (complete_path)):
+               for script_filename in script_filenames:
+                  script_file_address = "%s/%s" % (complete_path, script_filename)
+                  if not ".jinja2" in script_file_address:
+                     continue
+                  with open(script_file_address) as script_f:
+                     action_name = re.sub(r'.*/', '', re.sub(r'.jinja2', '', script_file_address))
+                     print(action_name)
+                     script_content = script_f.read()
+                     script_dict = {
+                        "code": script_content,
+                        "appliance": appliance_impl_name if appliance_name != "common" else appliance_name,
+                        "action": action_name
+                     }
+                     r = requests.post("%s/scripts/" % (appliance_registry_url), json=script_dict, auth=HTTPBasicAuth('admin', 'pass'))
+                     print("    - creation of script_impl %s => %s %s" % (action_name, r.status_code, r.json() if r.status_code >= 400 else ""))
    sys.exit(0)
 
