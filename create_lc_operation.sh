@@ -54,7 +54,7 @@ EOM
 
 echo $PROCESS_JSON_VALUE
 
-PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
+PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/operations/")
 PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
 echo $PROCESS_ID
 
@@ -73,7 +73,7 @@ read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
     "name": "line_counter_hadoop",
     "appliance": "hadoop",
-    "process_definition": $PROCESS_ID,
+    "operation": $PROCESS_ID,
     "cwd": "~",
     "script": "export ENV_VAR=!{env_var} ; curl http://dropbox.jonathanpastor.fr/archive.tgz > __archive.tar.gz ; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
     "output_type": "file",
@@ -83,7 +83,7 @@ EOM
 
 echo $PROCESS_IMPL_JSON_VALUE
 
-PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/processimpls/")
+PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/operationversions/")
 PROCESS_IMPL_ID=$(extract_id $PROCESS_IMPL_REGISTRATION_OUTPUT)
 echo $PROCESS_IMPL_ID
 

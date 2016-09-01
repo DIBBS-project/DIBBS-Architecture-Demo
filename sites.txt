@@ -1,0 +1,2 @@
+KVMatRoger https://openstack.tacc.chameleoncloud.org:5000/v2.0 openstack
+KVMatTACC https://openstack.tacc.chameleoncloud.org:5000/v2.0 openstack
