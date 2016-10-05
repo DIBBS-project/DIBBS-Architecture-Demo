@@ -80,7 +80,7 @@ resources:
                 until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8012); do printf '.'; sleep 2; done;
 
                 # Send IP adress to master node
-                IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+.[0-9]+.[0-9]+.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*.0$" | grep -E -v "*.255$" | head -n 1)
+                IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
                 curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://127.0.0.1:8012/add_to_host_file/
             params:
                 $username: { get_param: user_name }
@@ -182,7 +182,7 @@ resources:
                         until $(curl --output /dev/null --silent --head --fail http://$master_ip:8012); do printf '.'; sleep 2; done;
 
                         # Send IP adress to master node
-                        IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+.[0-9]+.[0-9]+.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*.0$" | grep -E -v "*.255$" | head -n 1)
+                        IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
                         curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://$master_ip:8012/add_to_host_file/
 
                         # install_and_configure_agents
