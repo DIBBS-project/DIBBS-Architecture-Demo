@@ -8,17 +8,17 @@ RUN apt-get install -y libffi-dev libssl-dev curl
 
 # Clone projects
 #   operation_registry
-RUN git clone -b development https://github.com/DIBBS-project/operation_registry.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/operation_registry.git
 #   operation_dispatcher
-RUN git clone -b development https://github.com/DIBBS-project/operation_manager.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/operation_manager.git
 #   appliance_registry
-RUN git clone -b development https://github.com/DIBBS-project/appliance_registry.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/appliance_registry.git
 #   resource_manager
-RUN git clone -b development https://github.com/DIBBS-project/resource_manager.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/resource_manager.git
 #   architecture_portal
-RUN git clone -b master https://github.com/DIBBS-project/architecture_portal.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/architecture_portal.git
 #   central_authentication
-RUN git clone -b development https://github.com/DIBBS-project/central_authentication_service.git
+RUN git clone -b mrcluster https://github.com/DIBBS-project/central_authentication_service.git
 
 # Upgrade pip
 RUN pip install --upgrade pip
