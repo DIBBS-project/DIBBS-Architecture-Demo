@@ -1,18 +1,18 @@
 {
   "credentials": [
     {
-      "name": "kvm@tacc_fg392",
+      "name": "chi@tacc_fg392",
       "username": "jpastor",
       "project_name": "FG-392",
-      "flavor": "m1.medium",
-      "infrastructure": "kvm@tacc"
+      "flavor": "baremetal",
+      "infrastructure": "chi@tacc"
     },
     {
-      "name": "kvm@tacc_ch816818",
+      "name": "chi@tacc_ch816818",
       "username": "jpastor",
       "project_name": "CH-816818",
-      "flavor": "m1.medium",
-      "infrastructure": "kvm@tacc"
+      "flavor": "baremetal",
+      "infrastructure": "chi@tacc"
     },
     {
       "name": "kvm@roger_dibbs",
@@ -24,9 +24,9 @@
   ],
   "infrastructures": [
     {
-      "name": "kvm@tacc",
-      "contact_url": "https://openstack.tacc.chameleoncloud.org:5000/v2.0",
-      "type": "openstack"
+      "name": "chi@tacc",
+      "contact_url": "https://chi.tacc.chameleoncloud.org:5000/v2.0",
+      "type": "baremetal"
     },
     {
       "name": "kvm@roger",

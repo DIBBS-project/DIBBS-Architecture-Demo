@@ -1,0 +1,235 @@
+# This describes what is deployed by this template.
+description: Hadoop clusters deployed with Heat on Chameleon
+
+# This defines the minimum Heat version required by this template.
+# heat_template_version: 2015-10-15
+heat_template_version: 2015-04-30
+
+# The resources section defines what OpenStack resources are to be deployed and
+# how they should be configured.
+resources:
+  hadoop_master_server_floating_ip:
+    type: OS::Nova::FloatingIP
+    properties:
+      pool: ext-net
+
+  hadoop_master_server:
+    type: OS::Nova::Server
+    properties:
+      name: MyHadoopClusterMaster
+      flavor: { get_param: flavor_name }
+      image: { get_param: image_name }
+      key_name: { get_param: key_name }
+      networks:
+         - network: { get_param: network_name }
+      scheduler_hints: { reservation: { get_param: reservation_id } }
+      user_data:
+        str_replace:
+            template: |
+                #!/bin/bash
+
+                set -x
+                set -eu
+
+                # Configure SSH to accept a new key
+                mkdir -p .ssh
+                pushd .ssh
+                yes | ssh-keygen -b 2048 -t rsa -f id_rsa -q -N ""
+                cat id_rsa.pub >> authorized_keys
+                popd
+                sudo cp -r .ssh /root/ || true
+
+                # Remove Host checking from ssh
+                sudo cp /etc/ssh/ssh_config ssh_config
+                sudo chmod 777 ssh_config
+                cat >> ssh_config <<- EOM
+                Host *
+                    StrictHostKeyChecking no
+                EOM
+                sudo cp ssh_config /etc/ssh/ssh_config
+
+                echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+rirjZpg/ov3cBd6hhl0HtinbHkAS70/WCcopmDrMQ0TpzDf5iLlGSTDgztJgkywWAHgwQ1OepN11dgOEx/UJscd9v/pWSCg/ieDW1M48edcj48FBd6HNIL3WvMTJxqS/aBPW5wwKnss3usC9ly4l3PsABmlK7AacAVQa206bMjC7KShVGvMf+14R1zNQpbvQtm/JsRqUOA/T60uk546kN87UtLTNCmNV1zc+3UFfFeDA/evr1U9JXqwihxIGbN3kjTjZor9O+9UXfAa9YiXi1HPurCZeB00INJWk07PxMwrNLkA2TQXOJqpbpiwm+OK2gF5OydB1FJUXuBQ08i0h jonathan@server.local" >> ~/.ssh/authorized_keys
+
+                sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/os/x86_64/
+                sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/updates/x86_64/
+                sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/extras/x86_64/
+                sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/centosplus/x86_64/
+
+                cp /etc/yum.conf yum.conf
+                cat >> yum.conf <<- EOM
+                timeout=5
+                EOM
+                sudo cp yum.conf /etc/yum.conf
+
+                sudo yum install -y java screen
+
+                curl https://raw.githubusercontent.com/DIBBS-project/heat_hadoop_templates/master/scripts/hadoop_script.sh > hadoop_script.sh
+                source hadoop_script.sh
+
+                clean_hadoop
+                repair_permissions
+                install_hadoop $username $master_name $master_name
+
+                echo "Starting Hadoop services"
+                bash /usr/hadoop/start_hadoop.sh
+                echo "done"
+
+                install_and_configure_agents
+
+                # Waiting for the master node's resource manager agent to be ready!
+                until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8012); do printf '.'; sleep 2; done;
+
+                # Send IP adress to master node
+                IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
+                curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://127.0.0.1:8012/add_to_host_file/
+            params:
+                $username: { get_param: user_name }
+                $node_name: MyHadoopClusterMaster
+                $master_name: MyHadoopClusterMaster
+     
+  hadoop_master_server_association:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: hadoop_master_server_floating_ip }
+      server_id: { get_resource: hadoop_master_server }
+
+  hadoop_slaves:
+    type: OS::Heat::ResourceGroup
+    depends_on: [ hadoop_master_server ]
+    properties:
+      count: { get_param: cluster_size }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: MyHadoopClusterSlave%index%
+          flavor: { get_param: flavor_name }
+          image: { get_param: image_name }
+          key_name: { get_param: key_name }
+          networks:
+             - network: { get_param: network_name }
+          scheduler_hints: { reservation: { get_param: reservation_id } }
+          user_data:
+                str_replace:
+                    template: |
+                        #!/bin/bash
+
+                        set -x
+                        set -eu
+
+                        # Configure SSH to accept a new key
+                        mkdir -p .ssh
+                        pushd .ssh
+                        yes | ssh-keygen -b 2048 -t rsa -f id_rsa -q -N ""
+                        cat id_rsa.pub >> authorized_keys
+                        popd
+                        sudo cp -r .ssh /root/ || true
+
+                        # Remove Host checking from ssh
+                        sudo cp /etc/ssh/ssh_config ssh_config
+                        sudo chmod 777 ssh_config
+                        cat >> ssh_config <<- EOM
+                        Host *
+                            StrictHostKeyChecking no
+                        EOM
+                        sudo cp ssh_config /etc/ssh/ssh_config
+
+                        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+rirjZpg/ov3cBd6hhl0HtinbHkAS70/WCcopmDrMQ0TpzDf5iLlGSTDgztJgkywWAHgwQ1OepN11dgOEx/UJscd9v/pWSCg/ieDW1M48edcj48FBd6HNIL3WvMTJxqS/aBPW5wwKnss3usC9ly4l3PsABmlK7AacAVQa206bMjC7KShVGvMf+14R1zNQpbvQtm/JsRqUOA/T60uk546kN87UtLTNCmNV1zc+3UFfFeDA/evr1U9JXqwihxIGbN3kjTjZor9O+9UXfAa9YiXi1HPurCZeB00INJWk07PxMwrNLkA2TQXOJqpbpiwm+OK2gF5OydB1FJUXuBQ08i0h jonathan@server.local" >> ~/.ssh/authorized_keys
+
+                        sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/os/x86_64/
+                        sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/updates/x86_64/
+                        sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/extras/x86_64/
+                        sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/centosplus/x86_64/
+
+                        cp /etc/yum.conf yum.conf
+                        cat >> yum.conf <<- EOM
+                        timeout=5
+                        EOM
+                        sudo cp yum.conf /etc/yum.conf
+
+                        sudo yum install -y java screen
+
+                        curl https://raw.githubusercontent.com/DIBBS-project/heat_hadoop_templates/master/scripts/hadoop_script.sh > hadoop_script.sh
+                        source hadoop_script.sh
+
+                        clean_hadoop
+                        repair_permissions
+                        install_hadoop $username $master_name $node_name
+
+                        # Configure hadoop node
+                        sudo echo "$node_name" > /usr/hadoop/hadoop/etc/hadoop/slaves
+                        sudo echo "$master_name" > /usr/hadoop/hadoop/etc/hadoop/masters
+
+                        echo "Cleaning running hadoop services"
+                        pkill -f 'java -jar' || true
+
+                        echo "Cleaning existing data in hdfs"
+                        sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
+                        sudo rm -rf /home/hadoop/hadoopdata/hdfs/namenode
+
+                        echo "Cleaning hadoop logs"
+                        sudo rm -rf /usr/hadoop/hadoop/logs/*
+
+                        echo "$master_ip $master_name" >> /etc/hosts
+
+                        # Waiting for the master node to be ready!
+                        until $(curl --output /dev/null --silent --head --fail http://$master_ip:8088); do printf '.'; sleep 2; done;
+
+                        echo "Starting Hadoop services"
+                        bash /usr/hadoop/start_hadoop.sh
+                        echo "done"
+
+                        # Waiting for the master node's resource manager agent to be ready!
+                        until $(curl --output /dev/null --silent --head --fail http://$master_ip:8012); do printf '.'; sleep 2; done;
+
+                        # Send IP adress to master node
+                        IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
+                        curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://$master_ip:8012/add_to_host_file/
+
+                        # install_and_configure_agents
+                    params:
+                        $username: { get_param: user_name }
+                        $node_name: MyHadoopClusterSlave%index%
+                        $master_name: { get_attr: [hadoop_master_server, name] }
+                        $master_ip: { get_attr: [hadoop_master_server, first_address] }
+
+# The parameters section gathers configuration from the user.
+parameters:
+  key_name:
+    type: string
+    description: Name of a KeyPair to enable SSH access to instances
+    default: default
+    constraints:
+    - custom_constraint: nova.keypair
+  image_name:
+    type: string
+    description: Name of the an image that will be used to spawn an instance
+    default: default
+    constraints:
+    - custom_constraint: glance.image
+  user_name:
+    type: string
+    description: Name of the user configured in the operating system
+    default: cc
+  cluster_size:
+    type: number
+    label: Cluster size
+    description: Number of instances in cluster.
+    default: 2
+  reservation_id:
+    type: string
+    description: ID of the Blazar reservation to use for launching instances.
+    # constraints:
+    # - custom_constraint: blazar.reservation
+    default: d5d0c000-d38d-4140-a37c-612a73c755d5
+  flavor_name:
+    type: string
+    description: Name of the flavor used for the instances.
+    constraints:
+    - custom_constraint: nova.flavor
+    default: baremetal
+  network_name:
+    type: string
+    description: Name of the network used for the instances.
+    constraints:
+    - custom_constraint: neutron.network
+    default: sharednet1
