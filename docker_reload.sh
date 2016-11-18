@@ -21,7 +21,7 @@ if [ "$DOCKER_PATH" == "" ]; then
         exit 1
     fi
     # Install docker
-    curl -fsSL https://test.docker.com/ | sh
+    curl -fsSL https://get.docker.com/ | sh
 fi
 
 # Run docker
