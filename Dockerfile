@@ -33,5 +33,5 @@ RUN pip install -r resource_manager/requirements.txt
 RUN pip install -r architecture_portal/requirements.txt
 
 # WORKAROUND TO PUT THE PUBLIC IP IN A CONFIGURATION FILE (if needed)
-RUN echo 'PUBLIC_IP=$(curl ipinfo.io/ip); if [[ "$PUBLIC_IP" == 129* ]]; then mkdir -p /etc/dibbs/; echo "{\"address\": \"$PUBLIC_IP\"}" > /etc/dibbs/dibbs.json; fi;' > /etc/ip.sh
+RUN echo 'PUBLIC_IP=$(curl ipinfo.io/ip); if [[ "$PUBLIC_IP" == 129* ]] || [[ "$PUBLIC_IP" == 141* ]]; then mkdir -p /etc/dibbs/; echo "{\"address\": \"$PUBLIC_IP\"}" > /etc/dibbs/dibbs.json; fi;' > /etc/ip.sh
 RUN chmod +x /etc/ip.sh; bash /etc/ip.sh
