@@ -51,7 +51,7 @@ function install_and_configure_agents() {
 
     # Getting the public IP address
     PUBLIC_IP=$(curl ipinfo.io/ip);
-    if [ "$PUBLIC_IP" == 129* ] || [ "$PUBLIC_IP" == 141* ]; then
+    if [[ "$PUBLIC_IP" == 129* ]] || [[ "$PUBLIC_IP" == 141* ]]; then
         mkdir -p /etc/dibbs/;
         echo "{\"address\": \"$PUBLIC_IP\"}" > /etc/dibbs/dibbs.json;
     fi
