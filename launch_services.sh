@@ -66,14 +66,14 @@ function install_and_configure_agents() {
     git clone -b master https://github.com/DIBBS-project/architecture_portal.git
     git clone -b development https://github.com/DIBBS-project/central_authentication_service.git
 
-    # sudo yum install -y python-pip
-
     sudo pip install -r central_authentication_service/requirements.txt
     sudo pip install -r operation_registry/requirements.txt
     sudo pip install -r operation_manager/requirements.txt
     sudo pip install -r appliance_registry/requirements.txt
     sudo pip install -r resource_manager/requirements.txt
     sudo pip install -r architecture_portal/requirements.txt
+
+    sudo pip install keystoneauth1 keystonemiddleware python-keystoneclient
 
     CURRENT_PATH=$(pwd)
     echo $CURRENT_PATH
