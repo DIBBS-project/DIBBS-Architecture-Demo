@@ -9,8 +9,7 @@ fi
 
 python create_appliances.py infrastructure_description.json
 python create_os_users.py infrastructure_description.json
-bash create_lc_operation.sh
 
-cat processinst_example.txt
+python create_lc_operation.py
 
 exit 0
