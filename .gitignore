@@ -3,6 +3,7 @@ tmp
 .idea
 db.sqlite3
 arapp/migrations
+projects
 
 # MAC OS
 
