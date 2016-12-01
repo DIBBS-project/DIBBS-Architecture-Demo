@@ -49,6 +49,13 @@ function install_and_configure_agents() {
     # Cleaning existing django processes
     ps aux | grep "manage.py runserver" | awk '{print $2}' | xargs kill -9
 
+    # Getting the public IP address
+    PUBLIC_IP=$(curl ipinfo.io/ip);
+    if [ "$PUBLIC_IP" == 129* ] || [ "$PUBLIC_IP" == 141* ]; then
+        mkdir -p /etc/dibbs/;
+        echo "{\"address\": \"$PUBLIC_IP\"}" > /etc/dibbs/dibbs.json;
+    fi
+
     ############################################################################
     # Cloning Agents projects and preparing dependencies
     ############################################################################
