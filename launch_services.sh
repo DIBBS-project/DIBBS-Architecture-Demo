@@ -94,6 +94,9 @@ function install_and_configure_agents() {
     sudo pip install -r resource_manager/requirements.txt
     sudo pip install -r architecture_portal/requirements.txt
 
+    # Install some pip packages
+    pip install redis celery
+
     CURRENT_PATH=$(pwd)
     echo $CURRENT_PATH
 
@@ -144,6 +147,10 @@ EOM
 
 pushd $CURRENT_PATH/operation_manager
 bash reset.sh
+
+export C_FORCE_ROOT="true"
+celery -A operation_manager worker -l info --beat --detach --logfile=celery.log
+
 python manage.py runserver 0.0.0.0:8001
 
 EOM
@@ -156,8 +163,6 @@ EOM
         systemctl restart redis-server
     fi
 
-    export C_FORCE_ROOT="true"
-    celery -A operation_manager worker -l info --beat --detach --logfile=celery.log
     screen $COMMON_SCREEN_ARGS -t operation_manager bash $CURRENT_PATH/operation_manager/configure_webservice.sh
     popd
 
