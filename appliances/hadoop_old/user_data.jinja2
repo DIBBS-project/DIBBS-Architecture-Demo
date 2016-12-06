@@ -2,12 +2,7 @@
 
 # Configure SSH to accept a new key
 mkdir -p /home/{{ user }}/.ssh
-
 echo "{{ public_key }}" >> /home/{{ user }}/.ssh/authorized_keys
-
-echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+rirjZpg/ov3cBd6hhl0HtinbHkAS70/WCcopmDrMQ0TpzDf5iLlGSTDgztJgkywWAHgwQ1OepN11dgOEx/UJscd9v/pWSCg/ieDW1M48edcj48FBd6HNIL3WvMTJxqS/aBPW5wwKnss3usC9ly4l3PsABmlK7AacAVQa206bMjC7KShVGvMf+14R1zNQpbvQtm/JsRqUOA/T60uk546kN87UtLTNCmNV1zc+3UFfFeDA/evr1U9JXqwihxIGbN3kjTjZor9O+9UXfAa9YiXi1HPurCZeB00INJWk07PxMwrNLkA2TQXOJqpbpiwm+OK2gF5OydB1FJUXuBQ08i0h jonathan@server.local" >> /home/{{ user }}/.ssh/authorized_keys
-
-echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsAUzzXSoRd7e9hpfG3Y43dMwvmXbIc/H7eC7Hd+BKkRGV2yfs5DGf+6zyrTM0058QpnE5Mb9szkYKSJgUFPD4EGt32hZmO8wMF+DzANggCIxKccdZ26DXB43VzanClL4VJm7lt5QBD0IqA4RixQPaI8Tp9e++214EAlO7UwfjDk3EsWd2n0yRyRlj1HdG7YQ4FVWZPIfjXW+icgmLrpYsqCRIhCYbfK7cUqPPNKwGiyr30nHMSyu//7Ut6BwlDOp/F4xE6kF/k+OiwinP7apQZxrhexAD0z8F0IfcIWjPtWAcWIhwu1TSu9OXoIELSZUgy+VL4Ow/HruL4ljeR07n soltani2@wirelessprvnat-172-17-99-29.near.illinois.edu" >> /home/{{ user }}/.ssh/authorized_keys
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDwvz1Fegi7p20f8p+l+Do77rNRpNpaG7lJ7u08gCLmUDc7uW+AVbM/hhTeVKs2Fi3esiZTrduR1Ggt8EWQZe0URwjtBu5+t7nOQM71lb2sH2/kH91V2/3hR5/acD3Ct7fkfjnyN0vJXvnj9T7S9msXYYwckt9HhVfv5D5hy0yPWxX9WqgOnvDKQYjcKu0Kft46TlEywPQ/s5+Oscs7mt6EK6cWg2pXJCsrUhqdA1Y7fLNBSzPm4n1dgz8DqGQSWdfDFadlGNIjHxOBFzkC9JYxPRagvXOjjODdsapw+CEe3JRQDiOOE9W/tjD/Gc0rPnqSX9ugVrmnIm2Wt02Pg+/F chardetm@Jonathans-MBP.attlocal.net" >> /home/{{ user }}/.ssh/authorized_keys
 
 sudo yum-config-manager --add-repo http://mirror.centos.org/centos/7/os/x86_64/

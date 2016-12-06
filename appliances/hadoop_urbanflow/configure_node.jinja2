@@ -1,31 +1,8 @@
 #!/bin/bash
 
-echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+rirjZpg/ov3cBd6hhl0HtinbHkAS70/WCcopmDrMQ0TpzDf5iLlGSTDgztJgkywWAHgwQ1OepN11dgOEx/UJscd9v/pWSCg/ieDW1M48edcj48FBd6HNIL3WvMTJxqS/aBPW5wwKnss3usC9ly4l3PsABmlK7AacAVQa206bMjC7KShVGvMf+14R1zNQpbvQtm/JsRqUOA/T60uk546kN87UtLTNCmNV1zc+3UFfFeDA/evr1U9JXqwihxIGbN3kjTjZor9O+9UXfAa9YiXi1HPurCZeB00INJWk07PxMwrNLkA2TQXOJqpbpiwm+OK2gF5OydB1FJUXuBQ08i0h jonathan@server.local
-" >> ~/.ssh/authorized_keys
-
 function clean_hadoop() {
-    echo "Cleaning running hadoop services"
-    ps aux | grep java  | grep -v grep | awk '{print $2}' | sudo xargs kill -9
-
-    echo "Cleaning existing data in hdfs"
-    sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
-
-    echo "Cleaning hadoop logs"
-    sudo rm -rf /usr/hadoop/hadoop/logs/*
-}
-
-function repair_permissions() {
-
-    # Repair permissions
-    pushd /usr/hadoop
-
-    sudo chmod 777 start_hadoop.sh
-    sudo chmod 777 reload.sh
-
-    sudo chmod 777 hadoop/etc/hadoop
-    sudo chmod 777 hadoop/etc/hadoop/*
-
-    popd
+    sudo rm -rf hadoop
+    sudo rm -rf hadoop.*.tgz
 }
 
 function install_hadoop() {
@@ -34,8 +11,16 @@ function install_hadoop() {
     sudo mkdir -p /usr/hadoop
     sudo chown {{ user }} /usr/hadoop
 
+    # Download Hadoop
+    cd /usr/hadoop
+
+    #wget -O http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
+    #curl -O http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
+    curl -O https://www.apache.org/dist/hadoop/core/hadoop-2.7.1/hadoop-2.7.1.tar.gz
+    tar xzf hadoop-2.7.1.tar.gz
+    mv hadoop-2.7.1 hadoop
+
     # Configure hadoop node
-    pushd /usr/hadoop
     echo "{{node_name}}" > hadoop/etc/hadoop/slaves
     echo "{{ master_name }}" > hadoop/etc/hadoop/masters
 
@@ -132,8 +117,6 @@ bash $HADOOP_HOME/sbin/start-dfs.sh
 bash $HADOOP_HOME/sbin/start-yarn.sh
 {% else %}
 bash $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
-bash $HADOOP_HOME/sbin/yarn-daemon.sh start resourcemanager
-bash $HADOOP_HOME/sbin/yarn-daemon.sh start nodemanager
 {% endif %}
 EOM
 
@@ -146,9 +129,19 @@ EOM
 
     cat > reload.sh <<- EOM
 #!/bin/bash
+
+ps aux | grep java | grep -v grep | awk '{print $2}' | xargs sudo kill -9
+sudo rm -rf hadoop/logs/
+sudo bash start_hadoop.sh
 EOM
 
-    popd
+    # Benchmarking hadoop
+    #sudo hadoop/bin/hadoop jar hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar teragen 10000 input
+    #sudo hadoop/bin/hadoop jar hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar terasort input output
+
+    sleep 10
+
+{#    popd#}
 }
 
 function hadoop_not_running() {
@@ -165,98 +158,19 @@ function hadoop_not_running() {
     fi
 }
 
-function install_and_configure_agents() {
-    pushd /usr/hadoop
-
-    # Start a screen for the agents
-    sudo yum install -y screen || true
-
-    SCREEN_NAME="agents"
-    COMMON_SCREEN_ARGS="-S $SCREEN_NAME -X screen"
-    screen -AdmS $SCREEN_NAME
-
-    ############################################################################
-    # Cloning Agents projects and preparing dependencies
-    ############################################################################
-    git clone https://github.com/DIBBS-project/operation_manager_agent.git
-    git clone https://github.com/DIBBS-project/resource_manager_agent.git
-    git clone https://github.com/badock/ChameleonHadoopWebservice.git
-
-    sudo yum install -y python-pip
-
-    sudo pip install -r operation_manager_agent/requirements.txt
-    sudo pip install -r resource_manager_agent/requirements.txt
-    sudo pip install -r ChameleonHadoopWebservice/requirements.txt
-
-    ############################################################################
-    # Install Operation Manager Agent
-    ############################################################################
-
-    pushd operation_manager_agent
-
-    cat > configure_webservice.sh <<- EOM
-#!/bin/bash
-
-pushd /usr/hadoop/operation_manager_agent
-bash reset.sh
-python manage.py runserver 0.0.0.0:8011
-
-EOM
-
-    screen $COMMON_SCREEN_ARGS -t pm_agent -dm bash /usr/hadoop/operation_manager_agent/configure_webservice.sh
-    popd
-
-    ############################################################################
-    # Install Resource Manager Agent
-    ############################################################################
-
-    pushd resource_manager_agent
-
-    cat > configure_webservice.sh <<- EOM
-#!/bin/bash
-
-pushd /usr/hadoop/resource_manager_agent
-bash reset.sh
-python manage.py runserver 0.0.0.0:8012
-
-EOM
-
-    screen $COMMON_SCREEN_ARGS -t rm_agent -dm bash /usr/hadoop/resource_manager_agent/configure_webservice.sh
-    popd
-
-
-    ############################################################################
-    # Install Hadoop Webservice (legacy)
-    ############################################################################
-
-    pushd ChameleonHadoopWebservice
-
-    cat > configure_webservice.sh <<- EOM
-#!/bin/bash
-
-pushd /usr/hadoop/ChameleonHadoopWebservice
-bash reset_app.sh
-python manage.py runserver 0.0.0.0:8000
-
-EOM
-
-    screen $COMMON_SCREEN_ARGS -t hadoop_agent -dm bash /usr/hadoop/ChameleonHadoopWebservice/configure_webservice.sh
-    popd
-
-    popd
-}
-
-clean_hadoop
-repair_permissions
-install_hadoop
+# while hadoop_not_running
+# do
+#     clean_hadoop
+#     install_hadoop
+#     sleep 10
+# done
+echo "Preparing to launch Hadoop"
+# touch step0
+pushd /usr/hadoop
 
 # Configure Yarn Hadoop
 cat > yarn-site.xml <<- EOM
 <configuration>
-  <property>
-    <name>yarn.resourcemanager.webapp.address</name>
-    <value>0.0.0.0:8088</value>
-  </property>
  <property>
   <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>
@@ -363,5 +277,41 @@ sudo bash /usr/hadoop/start_hadoop.sh
 echo "done"
 
 {% if is_master %}
-install_and_configure_agents
+echo "Master is installing ChameleonHadoopWebservice"
+
+cat > configure_webservice.sh <<- EOM
+#!/bin/bash
+
+if rpm -q git
+then
+  # do nothing as git is already installed
+  :
+else
+  sudo yum install -y git
+fi
+
+git clone https://github.com/badock/ChameleonHadoopWebservice.git
+pushd ChameleonHadoopWebservice
+
+# Quick fix to be able to monitor hadoop jobs
+sed -i 's/127.0.0.1/{{master_name}}/g' /usr/hadoop/ChameleonHadoopWebservice/core/mister_hadoop.py
+
+sudo yum install -y python-pip
+sudo pip install -r requirements.txt
+bash reset_app.sh
+
+python manage.py runserver 0.0.0.0:8000
+
+popd
+EOM
+
+screen -dm bash configure_webservice.sh # 2>&1 | tee ~/configure_node.log
+
+echo "Sleeping 30 seconds"
+sleep 30
+{% else %}
+# sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
+# sudo rm -rf /home/hadoop/hadoopdata/hdfs/namenode
+# ssh {master_name}
 {% endif %}
+

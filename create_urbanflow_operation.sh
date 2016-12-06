@@ -43,16 +43,17 @@ FILE_PARAMETERS_JSON_VALUE_ESCAPED=$(echo $FILE_PARAMETERS_JSON_VALUE | sed 's/"
 
 read -r -d '' PROCESS_JSON_VALUE <<- EOM
 {
-    "name": "line_counter",
-    "description": "A simple line counter.",
-    "string_parameters": "$STRING_PARAMETERS_JSON_VALUE_ESCAPED",
-    "file_parameters": "$FILE_PARAMETERS_JSON_VALUE_ESCAPED"
+    "name": "Urbanflow",
+    "description": "Operation that runs the comlete UrbanFlow workflow on data extracted from twitter (New York city).",
+    "string_parameters": "[]",
+    "logo_url": "http://dropbox.jonathanpastor.fr/dibbs/twitterapi.png",
+    "file_parameters": "[]"
 }
 EOM
 
 echo $PROCESS_JSON_VALUE
 
-PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/processdefs/")
+PROCESS_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_JSON_VALUE" "$PROCESS_REGISTRY_URL/operations/")
 PROCESS_ID=$(extract_id $PROCESS_REGISTRATION_OUTPUT)
 echo $PROCESS_ID
 
@@ -86,22 +87,19 @@ ENVIRONMENT_JSON_VALUE_ESCAPED=$(echo $ENVIRONMENT_JSON_VALUE | sed 's/"/\\\"/g'
 
 read -r -d '' PROCESS_IMPL_JSON_VALUE <<- EOM
 {
-    "name": "line_counter_hadoop",
-    "appliance": "hadoop",
-    "process_definition": $PROCESS_ID,
-    "archive_url": "http://dropbox.jonathanpastor.fr/archive.tgz",
-    "executable":"bash run_job.sh",
-    "cwd":"~",
-    "environment": "$ENVIRONMENT_JSON_VALUE_ESCAPED",
-    "argv": "$ARGV_JSON_VALUE_ESCAPED",
-    "output_type":"file",
+    "name": "urbanflow_impl",
+    "appliance": "hadoop_urbanflow",
+    "operation": $PROCESS_ID,
+    "cwd": "/root/script",
+    "script": "curl http://dropbox.jonathanpastor.fr/dibbs.tgz > __archive.tar.gz; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; sudo bash run_pipeline.sh",
+    "output_type": "file",
     "output_parameters": "$OUTPUT_PARAMS_JSON_VALUE_ESCAPED"
 }
 EOM
 
 echo $PROCESS_IMPL_JSON_VALUE
 
-PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/processimpls/")
+PROCESS_IMPL_REGISTRATION_OUTPUT=$(curl -u admin:pass -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "$PROCESS_IMPL_JSON_VALUE" "$PROCESS_REGISTRY_URL/operationversions/")
 PROCESS_IMPL_ID=$(extract_id $PROCESS_IMPL_REGISTRATION_OUTPUT)
 echo $PROCESS_IMPL_ID
 

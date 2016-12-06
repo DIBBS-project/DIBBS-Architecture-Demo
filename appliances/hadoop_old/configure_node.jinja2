@@ -39,6 +39,7 @@ function install_hadoop() {
     echo "{{node_name}}" > hadoop/etc/hadoop/slaves
     echo "{{ master_name }}" > hadoop/etc/hadoop/masters
 
+
     # Export variables
     cat >> .bashrc <<- EOM
 {#export HADOOP_HOME=/home/{{ user }}/hadoop#}
@@ -113,6 +114,28 @@ EOM
   <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>
  </property>
+ <property>
+  <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+ </property>
+ <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>{{master_name}}</value>
+  </property>
+
+  <property>
+<name>yarn.resourcemanager.address</name>
+<value>{{master_name}}:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.scheduler.address</name>
+<value>{{master_name}}:8030</value>
+</property>
+<property>
+<name>yarn.resourcemanager.resource-tracker.address</name>
+<value>{{master_name}}:8031</value>
+</property>
+
 </configuration>
 EOM
 
@@ -132,22 +155,16 @@ bash $HADOOP_HOME/sbin/start-dfs.sh
 bash $HADOOP_HOME/sbin/start-yarn.sh
 {% else %}
 bash $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
-bash $HADOOP_HOME/sbin/yarn-daemon.sh start resourcemanager
-bash $HADOOP_HOME/sbin/yarn-daemon.sh start nodemanager
 {% endif %}
 EOM
+
+
+
+    popd
 
     pushd ~
     sudo cp hadoop_ssh/id_rsa.pub /root/.ssh/id_rsa.pub
     sudo cp hadoop_ssh/id_rsa /root/.ssh/id_rsa
-    popd
-
-    screen -dm sudo bash start_hadoop.sh
-
-    cat > reload.sh <<- EOM
-#!/bin/bash
-EOM
-
     popd
 }
 
@@ -249,118 +266,7 @@ EOM
 clean_hadoop
 repair_permissions
 install_hadoop
-
-# Configure Yarn Hadoop
-cat > yarn-site.xml <<- EOM
-<configuration>
-  <property>
-    <name>yarn.resourcemanager.webapp.address</name>
-    <value>0.0.0.0:8088</value>
-  </property>
- <property>
-  <name>yarn.nodemanager.aux-services</name>
-    <value>mapreduce_shuffle</value>
- </property>
- <property>
-  <name>yarn.nodemanager.vmem-check-enabled</name>
-    <value>false</value>
- </property>
- <property>
-    <name>yarn.resourcemanager.hostname</name>
-    <value>{{master_name}}</value>
-  </property>
-
-  <property>
-<name>yarn.resourcemanager.address</name>
-<value>{{master_name}}:8032</value>
-</property>
-<property>
-<name>yarn.resourcemanager.scheduler.address</name>
-<value>{{master_name}}:8030</value>
-</property>
-<property>
-<name>yarn.resourcemanager.resource-tracker.address</name>
-<value>{{master_name}}:8031</value>
-</property>
-
-</configuration>
-EOM
-sudo cp yarn-site.xml /usr/hadoop/hadoop/etc/hadoop/yarn-site.xml
-
-{% if is_master %}
-# echo "Master is formating hdfs"
-# sudo /usr/hadoop/hadoop/bin/hdfs namenode -format
-{% else %}
-echo "Slave is preparing configuration files"
-# Configure Hadoop
-cat > core-site.xml <<- EOM
-<configuration>
-<property>
-  <name>fs.default.name</name>
-    <value>hdfs://{{ master_name }}:9000</value>
-</property>
-</configuration>
-EOM
-sudo cp core-site.xml /usr/hadoop/hadoop/etc/hadoop/core-site.xml
-
-# Configure Yarn Hadoop
-cat > yarn-site.xml <<- EOM
-<configuration>
- <property>
-  <name>yarn.nodemanager.aux-services</name>
-    <value>mapreduce_shuffle</value>
- </property>
- <property>
-  <name>yarn.nodemanager.vmem-check-enabled</name>
-    <value>false</value>
- </property>
- <property>
-    <name>yarn.resourcemanager.hostname</name>
-    <value>{{master_name}}</value>
-  </property>
-
-  <property>
-<name>yarn.resourcemanager.address</name>
-<value>{{master_name}}:8032</value>
-</property>
-<property>
-<name>yarn.resourcemanager.scheduler.address</name>
-<value>{{master_name}}:8030</value>
-</property>
-<property>
-<name>yarn.resourcemanager.resource-tracker.address</name>
-<value>{{master_name}}:8031</value>
-</property>
-
-</configuration>
-EOM
-sudo cp yarn-site.xml /usr/hadoop/hadoop/etc/hadoop/yarn-site.xml
-
-
-
-# Configure hadoop node
-sudo echo "{{node_name}}" > hadoop/etc/hadoop/slaves
-sudo echo "{{ master_name }}" > hadoop/etc/hadoop/masters
-
-# scp hadoop/etc/hadoop/slaves {{master_name}}:/usr/hadoop/hadoop/etc/hadoop/slaves
-
-echo "Cleaning running hadoop services"
-ps aux | grep java  | grep -v grep | awk '{print $2}' | sudo xargs kill -9
-
-echo "Cleaning existing data in hdfs"
-sudo rm -rf /home/hadoop/hadoopdata/hdfs/datanode
-sudo rm -rf /home/hadoop/hadoopdata/hdfs/namenode
-
-echo "Cleaning hadoop logs"
-sudo rm -rf /usr/hadoop/hadoop/logs/*
-
-sleep 5
-
-{% endif %}
-
-echo "Starting Hadoop services"
 sudo bash /usr/hadoop/start_hadoop.sh
-echo "done"
 
 {% if is_master %}
 install_and_configure_agents
