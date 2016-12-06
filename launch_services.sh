@@ -28,6 +28,18 @@ if [ "$PIP_PATH" == "" ]; then
     fi
 fi
 
+# Check if redis-server is installed
+PIP_PATH=$(which redis-server)
+if [ "$PIP_PATH" == "" ]; then
+    if [ "${APT_PATH}${YUM_PATH}" == "" ]; then
+        echo "Could  not install 'redis-server' via  APT or yum.  Please install pip on this computer!"
+        exit 1
+    else
+        CMD="${APT_PATH}${YUM_PATH} install redis-server"
+        $CMD
+    fi
+fi
+
 function install_and_configure_agents() {
 
     # Cleaning project sources
@@ -128,7 +140,9 @@ bash reset.sh
 python manage.py runserver 0.0.0.0:8001
 
 EOM
-
+    systemctl restart redis-server
+    export C_FORCE_ROOT="true"
+    celery -A operation_manager worker -l info --beat --detach --logfile=celery.log
     screen $COMMON_SCREEN_ARGS -t operation_manager bash $CURRENT_PATH/operation_manager/configure_webservice.sh
     popd
 
