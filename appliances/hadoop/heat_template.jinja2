@@ -31,6 +31,22 @@ resources:
                 set -x
                 set -eu
 
+                # Detect IP address
+                IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
+                NETWORK_ADDRESS=$(NETWORK_PREFIX=$(echo $IP_ADDRESS | grep -o -E "^[0-9]+\.[0-9]+.[0-9]+" | xargs echo); echo $NETWORK_PREFIX.0)
+
+                # Start and configure NFS server
+                systemctl start nfs-server.service
+                mkdir /var/nfs
+                chown nfsnobody:nfsnobody /var/nfs
+                chmod 755 /var/nfs
+                echo "/var/nfs $NETWORK_ADDRESS/22(rw,async) $NETWORK_ADDRESS/23(rw,async) $NETWORK_ADDRESS/24(rw,async)" > /etc/exports
+                exportfs -a
+
+                # Start a daemon that will synchronise hosts file (master)
+                curl https://raw.githubusercontent.com/DIBBS-project/heat_hadoop_templates/master/scripts/synchronize_hosts_file_master.sh > synchronize_hosts_file_master.sh
+                screen -dm bash synchronize_hosts_file_master.sh
+
                 # Configure SSH to accept a new key
                 mkdir -p .ssh
                 pushd .ssh
@@ -68,7 +84,7 @@ resources:
 
                 clean_hadoop
                 repair_permissions
-                install_hadoop $username $master_name $master_name
+                install_hadoop $username $IP_ADDRESS $IP_ADDRESS
 
                 echo "Starting Hadoop services"
                 bash /usr/hadoop/start_hadoop.sh
@@ -80,8 +96,8 @@ resources:
                 until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8012); do printf '.'; sleep 2; done;
 
                 # Send IP adress to master node
-                IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
                 curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://127.0.0.1:8012/add_to_host_file/
+
             params:
                 $username: { get_param: user_name }
                 $node_name: MyHadoopClusterMaster
@@ -115,6 +131,17 @@ resources:
 
                         set -x
                         set -eu
+
+                        # Detect IP address
+                        IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
+
+                        # Start and configure NFS client
+                        mkdir -p /mnt/nfs/var/nfs
+                        mount $master_ip:/var/nfs /mnt/nfs/var/nfs -v
+
+                        # Start a daemon that will synchronise hosts file (slave)
+                        curl https://raw.githubusercontent.com/DIBBS-project/heat_hadoop_templates/master/scripts/synchronize_hosts_file_slave.sh > synchronize_hosts_file_slave.sh
+                        screen -dm bash synchronize_hosts_file_slave.sh
 
                         # Configure SSH to accept a new key
                         mkdir -p .ssh
@@ -153,11 +180,13 @@ resources:
 
                         clean_hadoop
                         repair_permissions
-                        install_hadoop $username $master_name $node_name
+                        install_hadoop $username $master_ip $IP_ADDRESS
 
                         # Configure hadoop node
-                        sudo echo "$node_name" > /usr/hadoop/hadoop/etc/hadoop/slaves
-                        sudo echo "$master_name" > /usr/hadoop/hadoop/etc/hadoop/masters
+                        # sudo echo "$node_name" > /usr/hadoop/hadoop/etc/hadoop/slaves
+                        # sudo echo "$master_name" > /usr/hadoop/hadoop/etc/hadoop/masters
+                        sudo echo "$IP_ADDRESS" > /usr/hadoop/hadoop/etc/hadoop/slaves
+                        sudo echo "$master_ip" > /usr/hadoop/hadoop/etc/hadoop/masters
 
                         echo "Cleaning running hadoop services"
                         pkill -f 'java -jar' || true
@@ -169,7 +198,7 @@ resources:
                         echo "Cleaning hadoop logs"
                         sudo rm -rf /usr/hadoop/hadoop/logs/*
 
-                        echo "$master_ip $master_name" >> /etc/hosts
+                        # echo "$master_ip $master_name" >> /etc/hosts
 
                         # Waiting for the master node to be ready!
                         until $(curl --output /dev/null --silent --head --fail http://$master_ip:8088); do printf '.'; sleep 2; done;
@@ -182,10 +211,8 @@ resources:
                         until $(curl --output /dev/null --silent --head --fail http://$master_ip:8012); do printf '.'; sleep 2; done;
 
                         # Send IP adress to master node
-                        IP_ADDRESS=$(ifconfig -a | grep inet | grep -o -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v "127.0.0.1" | grep -E -v "*\.0$" | grep -E -v "*\.255$" | head -n 1)
                         curl --data "hostname=$node_name&ip=$IP_ADDRESS" http://$master_ip:8012/add_to_host_file/
 
-                        # install_and_configure_agents
                     params:
                         $username: { get_param: user_name }
                         $node_name: MyHadoopClusterSlave%index%

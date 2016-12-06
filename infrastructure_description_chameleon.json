@@ -1,0 +1,23 @@
+{
+  "credentials": [
+    {
+      "name": "chi@tacc_fg392",
+      "username": "jpastor",
+      "project_name": "FG-392",
+      "flavor": "baremetal",
+      "infrastructure": "chi@tacc"
+    }
+  ],
+  "infrastructures": [
+    {
+      "name": "chi@tacc",
+      "contact_url": "https://chi.tacc.chameleoncloud.org:5000/v2.0",
+      "type": "baremetal"
+    },
+    {
+      "name": "kvm@roger",
+      "contact_url": "http://roger-openstack.ncsa.illinois.edu:5000/v2.0",
+      "type": "openstack"
+    }
+  ]
+}
