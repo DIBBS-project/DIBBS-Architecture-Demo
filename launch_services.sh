@@ -11,7 +11,7 @@ if [ "$SCREEN_PATH" == "" ]; then
         echo "Could  not install 'screen' via  APT or yum.  Please install the screen unix tool on this computer!"
         exit 1
     else
-        CMD="${APT_PATH}${YUM_PATH} install screen"
+        CMD="${APT_PATH}${YUM_PATH} install -y screen"
         $CMD
     fi
 fi
@@ -23,20 +23,27 @@ if [ "$PIP_PATH" == "" ]; then
         echo "Could  not install 'python-pip' via  APT or yum.  Please install pip on this computer!"
         exit 1
     else
-        CMD="${APT_PATH}${YUM_PATH} install python-pip"
+        CMD="${APT_PATH}${YUM_PATH} install -y python-pip"
         $CMD
     fi
 fi
 
 # Check if redis-server is installed
-PIP_PATH=$(which redis-server)
-if [ "$PIP_PATH" == "" ]; then
+REDIS_PATH=$(which redis-server)
+if [ "${REDIS_PATH}" == "" ]; then
     if [ "${APT_PATH}${YUM_PATH}" == "" ]; then
         echo "Could  not install 'redis-server' via  APT or yum.  Please install pip on this computer!"
         exit 1
     else
-        CMD="${APT_PATH}${YUM_PATH} install redis-server"
-        $CMD
+        if [ "${YUM_PATH}" != "" ]; then
+            CMD="${YUM_PATH} install -y redis"
+            $CMD
+        fi
+
+        if [ "${APT_PATH}" != "" ]; then
+            CMD="${APT_PATH} install -y redis-server"
+            $CMD
+        fi
     fi
 fi
 
@@ -140,7 +147,15 @@ bash reset.sh
 python manage.py runserver 0.0.0.0:8001
 
 EOM
-    systemctl restart redis-server
+
+    if [ "${YUM_PATH}" != "" ]; then
+        systemctl restart redis
+    fi
+
+    if [ "${APT_PATH}" != "" ]; then
+        systemctl restart redis-server
+    fi
+
     export C_FORCE_ROOT="true"
     celery -A operation_manager worker -l info --beat --detach --logfile=celery.log
     screen $COMMON_SCREEN_ARGS -t operation_manager bash $CURRENT_PATH/operation_manager/configure_webservice.sh
