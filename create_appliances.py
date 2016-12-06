@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
             # If needed, create actions
             if not skip_actions_creation:
-                actions = ["configure_node", "prepare_node", "update_master_node", "user_data", "update_hosts_file"]
+                actions = ["configure_node", "prepare_node", "update_master_node", "user_data", "update_hosts_file", "heat_template"]
 
                 for action in actions:
                     # Creating a new action
@@ -129,7 +129,7 @@ if __name__ == "__main__":
                         for script_dirname, script_dirnames, script_filenames in os.walk("%s" % (complete_path)):
                             for script_filename in script_filenames:
                                 script_file_address = "%s/%s" % (complete_path, script_filename)
-                                if not ".jinja2" in script_file_address:
+                                if not "heat_template.jinja2" in script_file_address:
                                     continue
                                 with open(script_file_address) as script_f:
                                     action_name = re.sub(r'.*/', '', re.sub(r'.jinja2', '', script_file_address))

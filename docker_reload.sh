@@ -2,6 +2,10 @@
 
 set -x
 
+# Fix an issue with bridge MTU which prevents containers to access internet
+#  cf: https://forums.docker.com/t/cannot-wget-curl-git-apt-get-to-internet-from-within-docker-container/19373/4
+sudo iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+
 # Check if superuser is running this script
 if [[ $UID != 0 ]]; then
     echo "Please run this script with sudo:"
@@ -21,7 +25,7 @@ if [ "$DOCKER_PATH" == "" ]; then
         exit 1
     fi
     # Install docker
-    curl -fsSL https://test.docker.com/ | sh
+    curl -fsSL https://get.docker.com/ | sh
 fi
 
 # Run docker
