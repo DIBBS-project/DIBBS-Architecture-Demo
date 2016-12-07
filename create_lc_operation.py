@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-import os
-import re
 import sys
-import json
+import time
+import uuid
+
 import requests
 from requests.auth import HTTPBasicAuth
 
-# target_host = "129.114.111.75"
-target_host = "127.0.0.1"
+target_host = "141.142.170.178"
+# target_host = "127.0.0.1"
 operation_registry_url = "http://%s:8000" % (target_host)
 operation_manager_url = "http://%s:8001" % (target_host)
 resource_manager_url = "http://%s:8002" % (target_host)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     execution_dict = {
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
-        "force_spawn_cluster": "False",
+        "force_spawn_cluster": "",
         "resource_provisioner_token": resource_manager_token ,
         "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
     }
@@ -107,11 +107,52 @@ if __name__ == "__main__":
     # Launch the execution of the operation instance
     print(" - launching the execution of the line_counter operation => %s" % (r.status_code))
     r = requests.get("%s/exec/%s/run" % (operation_manager_url, execution_id),
-                      auth=HTTPBasicAuth('admin', 'pass'))
+                     auth=HTTPBasicAuth('admin', 'pass'))
     if r.status_code < 300:
         print("   OK")
     else:
         print("   ERROR")
 
+    # Wait for the execution to finish
+    print(" - Waiting for the execution to finish")
+
+    execution_has_finished = False
+    current_status = None
+    previous_status = ""
+    while not execution_has_finished:
+        r = requests.get("%s/executions/%s" % (operation_manager_url, execution_id),
+                         auth=HTTPBasicAuth('admin', 'pass'))
+
+        data = r.json()
+        current_status = data["status"]
+
+        if current_status != previous_status:
+            print("   => %s" % (current_status))
+            previous_status = current_status
+
+        if current_status == "FINISHED":
+            execution_has_finished = True
+
+        if not execution_has_finished:
+            time.sleep(2)
+
+    # Download the output of the execution
+    print(" - Download the output of the execution")
+    r = requests.get("%s/executions/%s" % (operation_manager_url, execution_id),
+                     auth=HTTPBasicAuth('admin', 'pass'))
+
+    data = r.json()
+
+    download_url = data["output_location"]
+    if download_url is not None:
+        r = requests.get(download_url, auth=HTTPBasicAuth('admin', 'pass'))
+
+        # Write the downloaded file in a temporary file
+        output_file_path = "/tmp/%s" % (uuid.uuid4())
+        with open(output_file_path, 'wb') as fd:
+            for chunk in r.iter_content(chunk_size=128):
+                fd.write(chunk)
+
+        print("   => output has been download in %s" % (output_file_path))
 
     sys.exit(0)
