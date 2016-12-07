@@ -13,13 +13,14 @@ services:
       - "8003:8003"
       - "8005:8005"
       - "7000:7000"
+      - "6379:6379"
   operation_manager:
     network_mode: "service:central_authentication_service"
     build: .
     working_dir: /operation_manager
-    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8001"
+    command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat --detach --logfile=celery.log; python manage.py runserver 0.0.0.0:8001"
     depends_on:
-      - "central_authentication_service"
+      - "redis-server"
   operation_registry:
     network_mode: "service:central_authentication_service"
     build: .
@@ -46,5 +47,12 @@ services:
     build: .
     working_dir: /architecture_portal
     command: bash -c "python manage.py runserver 0.0.0.0:8005"
+    depends_on:
+      - "central_authentication_service"
+  redis-server:
+    network_mode: "service:central_authentication_service"
+    build: .
+    working_dir: /architecture_portal
+    command: bash -c "redis-server"
     depends_on:
       - "central_authentication_service"

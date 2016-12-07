@@ -1,20 +1,6 @@
 {
   "credentials": [
     {
-      "name": "chi@tacc_fg392",
-      "username": "jpastor",
-      "project_name": "FG-392",
-      "flavor": "baremetal",
-      "infrastructure": "chi@tacc"
-    },
-    {
-      "name": "chi@tacc_ch816818",
-      "username": "jpastor",
-      "project_name": "CH-816818",
-      "flavor": "baremetal",
-      "infrastructure": "chi@tacc"
-    },
-    {
       "name": "kvm@roger_dibbs",
       "username": "jpastor",
       "project_name": "DIBBs",

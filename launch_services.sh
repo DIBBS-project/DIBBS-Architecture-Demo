@@ -11,7 +11,7 @@ if [ "$SCREEN_PATH" == "" ]; then
         echo "Could  not install 'screen' via  APT or yum.  Please install the screen unix tool on this computer!"
         exit 1
     else
-        CMD="${APT_PATH}${YUM_PATH} install screen"
+        CMD="${APT_PATH}${YUM_PATH} install -y screen"
         $CMD
     fi
 fi
@@ -23,8 +23,27 @@ if [ "$PIP_PATH" == "" ]; then
         echo "Could  not install 'python-pip' via  APT or yum.  Please install pip on this computer!"
         exit 1
     else
-        CMD="${APT_PATH}${YUM_PATH} install python-pip"
+        CMD="${APT_PATH}${YUM_PATH} install -y python-pip"
         $CMD
+    fi
+fi
+
+# Check if redis-server is installed
+REDIS_PATH=$(which redis-server)
+if [ "${REDIS_PATH}" == "" ]; then
+    if [ "${APT_PATH}${YUM_PATH}" == "" ]; then
+        echo "Could  not install 'redis-server' via  APT or yum.  Please install pip on this computer!"
+        exit 1
+    else
+        if [ "${YUM_PATH}" != "" ]; then
+            CMD="${YUM_PATH} install -y redis"
+            $CMD
+        fi
+
+        if [ "${APT_PATH}" != "" ]; then
+            CMD="${APT_PATH} install -y redis-server"
+            $CMD
+        fi
     fi
 fi
 
@@ -73,7 +92,10 @@ function install_and_configure_agents() {
     sudo pip install -r resource_manager/requirements.txt
     sudo pip install -r architecture_portal/requirements.txt
 
-    sudo pip install keystoneauth1 keystonemiddleware python-keystoneclient
+    # Install some pip packages
+    pip install keystoneauth1 keystonemiddleware python-keystoneclient
+    pip install redis celery
+
 
     CURRENT_PATH=$(pwd)
     echo $CURRENT_PATH
@@ -125,9 +147,21 @@ EOM
 
 pushd $CURRENT_PATH/operation_manager
 bash reset.sh
+
+export C_FORCE_ROOT="true"
+celery -A operation_manager worker -l info --beat --detach --logfile=celery.log
+
 python manage.py runserver 0.0.0.0:8001
 
 EOM
+
+    if [ "${YUM_PATH}" != "" ]; then
+        systemctl restart redis
+    fi
+
+    if [ "${APT_PATH}" != "" ]; then
+        systemctl restart redis-server
+    fi
 
     screen $COMMON_SCREEN_ARGS -t operation_manager bash $CURRENT_PATH/operation_manager/configure_webservice.sh
     popd
