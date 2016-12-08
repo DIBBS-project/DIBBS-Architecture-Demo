@@ -14,7 +14,7 @@ or
 sudo bash deploy_without_docker.sh
 ```
 
-Once the deployment is finished, run the following "oneliner" script
+Once the deployment is finished (give to the system one or two minutes), run the following "oneliner" script
 
 ```
 bash onliner_init_script.sh --run-on-roger
@@ -57,7 +57,7 @@ It will install the following software:
 
 ## Bootstraping
 
-To bootstrap a newly deployed DIBBs platform, you will have to do the following actions:
+To bootstrap a newly deployed DIBBs platform (give one or two minutes to the system to run), you will have to do the following actions:
 
 - configure cloud computing infrastructures that will be used to run operation executions
 - add some appliances that describes environment in which are run operations
