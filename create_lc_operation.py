@@ -7,15 +7,15 @@ import uuid
 import requests
 from requests.auth import HTTPBasicAuth
 
-target_host = "141.142.170.178"
-# target_host = "127.0.0.1"
-
-operation_registry_url = "http://%s:8000" % (target_host)
-operation_manager_url = "http://%s:8001" % (target_host)
-resource_manager_url = "http://%s:8002" % (target_host)
-
 if __name__ == "__main__":
-    """Create appliances to demonstrate the architecture"""
+    """Create an operation and run it, to demonstrate the architecture"""
+
+    target_host = "141.142.170.178"
+    # target_host = "127.0.0.1"
+
+    operation_registry_url = "http://%s:8000" % (target_host)
+    operation_manager_url = "http://%s:8001" % (target_host)
+    resource_manager_url = "http://%s:8002" % (target_host)
 
     print("- Building the line_counter example")
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     else:
         print("   ERROR")
 
-    # Implementing the Operation based on Hadoop
+    # Implementing the Operation based on the hadoop appliance.
     implementation_dict = {
         "name": "line_counter_hadoop",
         "appliance": "hadoop",
