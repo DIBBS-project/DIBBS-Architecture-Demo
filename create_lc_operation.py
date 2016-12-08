@@ -61,7 +61,7 @@ if __name__ == "__main__":
         "name": "line_counter_instance",
         "process_definition_id": operation_id,
         "parameters": """{"env_var": "plop","parameter": "parameter"}""",
-        "files": """{"input_file": "http://dropbox.jonathanpastor.fr/input.txt"}"""
+        "files": """{"input_file": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/input.txt"}"""
     }
     print(" - creating an instance of the line_counter operation")
     r = requests.post("%s/instances/" % (operation_manager_url), json=instance_dict,
