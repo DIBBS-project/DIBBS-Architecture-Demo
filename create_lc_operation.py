@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 
 target_host = "141.142.170.178"
 # target_host = "127.0.0.1"
+
 operation_registry_url = "http://%s:8000" % (target_host)
 operation_manager_url = "http://%s:8001" % (target_host)
 resource_manager_url = "http://%s:8002" % (target_host)

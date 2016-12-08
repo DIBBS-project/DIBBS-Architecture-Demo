@@ -9,8 +9,12 @@ import requests
 from Crypto.PublicKey import RSA
 from requests.auth import HTTPBasicAuth
 
+target_host = "141.142.170.178"
+# target_host = "127.0.0.1"
+
+resource_manager_url = "http://%s:8002" % (target_host)
+
 if __name__ == "__main__":
-    resource_manager_url = "http://127.0.0.1:8002"
 
     configuration_file_path = None
     if len(sys.argv) > 1:

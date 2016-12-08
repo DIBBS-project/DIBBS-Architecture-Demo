@@ -7,17 +7,11 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-# # KVM@TACC
-# infrastructure_name = "KVMatTACC"
-# infrastructure_url = "https://openstack.tacc.chameleoncloud.org:5000/v2.0"
+target_host = "141.142.170.178"
+# target_host = "127.0.0.1"
 
-# for i in range(0, len(sys.argv)):
-#     if sys.argv[i] == "--run-on-roger":
-#         infrastructure_name = "KVMatRoger"
-#         infrastructure_url = "http://roger-openstack.ncsa.illinois.edu:5000/v2.0"
-
-appliance_registry_url = "http://127.0.0.1:8003"
-resource_manager_url = "http://127.0.0.1:8002"
+appliance_registry_url = "http://%s:8003" % (target_host)
+resource_manager_url = "http://%s:8002" % (target_host)
 
 image_name = "CENTOS-7_HADOOP"
 
