@@ -1,5 +1,7 @@
 # DIBBS-Architecture-Demo
 
+Operations management platform that combines access to data and computation within one geospatial portal. More details can be found in the following paper [docs/publishing_platform_for_geospatial_operations.pdf](https://github.com/DIBBS-project/DIBBS-Architecture-Demo/blob/master/docs/publishing_platform_for_geospatial_operations.pdf).
+
 ## TLDR;
 
 Run one of following commands to setup the DIBBs platform
