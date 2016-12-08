@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "appliance": "hadoop",
         "operation": operation_id,
         "cwd": "~",
-        "script": "export ENV_VAR=!{env_var} ; curl http://dropbox.jonathanpastor.fr/archive.tgz > __archive.tar.gz ; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
+        "script": "export ENV_VAR=!{env_var} ; curl https://github.com/DIBBS-project/DIBBS-Architecture-Demo/raw/master/misc/archive.tgz > __archive.tar.gz ; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
         "output_type": "file",
         "output_parameters": """{"file_path": "output.txt"}"""
     }
