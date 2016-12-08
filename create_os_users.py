@@ -9,8 +9,8 @@ import requests
 from Crypto.PublicKey import RSA
 from requests.auth import HTTPBasicAuth
 
-target_host = "141.142.170.178"
-# target_host = "127.0.0.1"
+# target_host = "141.142.170.178"
+target_host = "127.0.0.1"
 
 resource_manager_url = "http://%s:8002" % (target_host)
 

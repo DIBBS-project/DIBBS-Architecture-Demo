@@ -7,8 +7,8 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-target_host = "141.142.170.178"
-# target_host = "127.0.0.1"
+# target_host = "141.142.170.178"
+target_host = "127.0.0.1"
 
 appliance_registry_url = "http://%s:8003" % (target_host)
 resource_manager_url = "http://%s:8002" % (target_host)
