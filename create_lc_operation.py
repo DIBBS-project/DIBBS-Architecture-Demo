@@ -24,7 +24,7 @@ if __name__ == "__main__":
         "name": "LineCounter",
         "description": "A simple line counter that can be used to demonstrate the complete architecture.",
         "string_parameters": """["env_var", "parameter"]""",
-        "logo_url": "http://dropbox.jonathanpastor.fr/dibbs/linecounter.png",
+        "logo_url": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/dibbs/linecounter.png",
         "file_parameters": """["input_file"]"""
     }
     print(" - creating of the line_counter operation")
