@@ -4,6 +4,7 @@ Operations management platform that combines access to data and computation with
 
 ## TLDR;
 
+### Deploy
 Run one of following commands to setup the DIBBs platform
 
 ```shell
@@ -16,10 +17,22 @@ or
 sudo bash deploy_without_docker.sh
 ```
 
-Once the deployment is finished (give to the system one or two minutes), run the following "oneliner" script
+Wait that the deployment is finished (give to the system one or two minutes).
+
+### Run on roger
+
+Update the *infrastructure_description_roger.json* file with your account information and then run the following "one liner" script:
 
 ```
 bash onliner_init_script.sh --run-on-roger
+```
+
+### Run on chameleon (baremetal)
+
+Update the *infrastructure_description_chameleon.json* file with your account information and then run the following "one liner" script:
+
+```
+bash onliner_init_script.sh
 ```
 
 ## Installation and run
