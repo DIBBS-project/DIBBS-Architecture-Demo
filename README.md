@@ -21,7 +21,9 @@ Wait that the deployment is finished (give to the system one or two minutes).
 
 ### Run on roger
 
-Update the *infrastructure_description_roger.json* file with your account information and then run the following "one liner" script:
+> *Don't forget to update the *infrastructure_description_roger.json* file with your account information*
+
+run the following "one liner" script:
 
 ```
 bash onliner_init_script.sh --run-on-roger
@@ -29,7 +31,9 @@ bash onliner_init_script.sh --run-on-roger
 
 ### Run on chameleon (baremetal)
 
-Update the *infrastructure_description_chameleon.json* file with your account information and then run the following "one liner" script:
+> *Don't forget to update the *infrastructure_description_chameleon.json* file with your account information*
+
+run the following "one liner" script:
 
 ```
 bash onliner_init_script.sh
