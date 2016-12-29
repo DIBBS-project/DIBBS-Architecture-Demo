@@ -154,6 +154,6 @@ if __name__ == "__main__":
             for chunk in r.iter_content(chunk_size=128):
                 fd.write(chunk)
 
-        print("   => output has been download in %s" % (output_file_path))
+        print("   => output has been downloaded in %s" % (output_file_path))
 
     sys.exit(0)
