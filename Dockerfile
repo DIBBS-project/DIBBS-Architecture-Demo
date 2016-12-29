@@ -10,7 +10,7 @@ RUN systemctl disable redis-server
 # Clone projects
 #   operation_registry
 RUN git clone -b development https://github.com/DIBBS-project/operation_registry.git
-#   operation_dispatcher
+#   operation_manager
 RUN git clone -b development https://github.com/DIBBS-project/operation_manager.git
 #   appliance_registry
 RUN git clone -b development https://github.com/DIBBS-project/appliance_registry.git
@@ -18,7 +18,7 @@ RUN git clone -b development https://github.com/DIBBS-project/appliance_registry
 RUN git clone -b development https://github.com/DIBBS-project/resource_manager.git
 #   architecture_portal
 RUN git clone -b master https://github.com/DIBBS-project/architecture_portal.git
-#   central_authentication
+#   central_authentication_service
 RUN git clone -b development https://github.com/DIBBS-project/central_authentication_service.git
 
 # Upgrade pip
