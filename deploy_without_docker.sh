@@ -66,7 +66,8 @@ function install_and_configure_agents() {
     screen -AdmS $SCREEN_NAME
 
     # Cleaning existing django processes
-    ps aux | grep "manage.py runserver" | awk '{print $2}' | xargs kill -9
+    # Note: matching on [m] is a trick to avoid matching on the grep process
+    ps aux | grep "[m]anage.py runserver" | awk '{print $2}' | xargs -r kill -9
 
     # Getting the public IP address
     PUBLIC_IP=$(curl ipinfo.io/ip);
