@@ -1,0 +1,6 @@
+operation_registry
+operation_manager
+appliance_registry
+resource_manager
+architecture_portal
+central_authentication_service

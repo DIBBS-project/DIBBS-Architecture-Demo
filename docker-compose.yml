@@ -2,7 +2,7 @@ version: '2'
 services:
   central_authentication_service:
     build: .
-    working_dir: /central_authentication_service
+    working_dir: /sources/central_authentication_service
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:7000"
     expose:
       - "8001"
@@ -17,42 +17,42 @@ services:
   operation_manager:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /operation_manager
+    working_dir: /sources/operation_manager
     command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat --detach --logfile=celery.log; python manage.py runserver 0.0.0.0:8001"
     depends_on:
       - "redis-server"
   operation_registry:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /operation_registry
+    working_dir: /sources/operation_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
     depends_on:
       - "central_authentication_service"
   resource_manager:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /resource_manager
+    working_dir: /sources/resource_manager
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
     depends_on:
       - "central_authentication_service"
   appliance_registry:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /appliance_registry
+    working_dir: /sources/appliance_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
     depends_on:
       - "central_authentication_service"
   architecture_portal:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /architecture_portal
+    working_dir: /sources/architecture_portal
     command: bash -c "python manage.py runserver 0.0.0.0:8005"
     depends_on:
       - "central_authentication_service"
   redis-server:
     network_mode: "service:central_authentication_service"
     build: .
-    working_dir: /architecture_portal
+    working_dir: /sources/architecture_portal
     command: bash -c "redis-server"
     depends_on:
       - "central_authentication_service"
