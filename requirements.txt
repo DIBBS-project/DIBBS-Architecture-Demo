@@ -1,0 +1,6 @@
+certifi
+common-dibbs
+pycrypto
+requests
+six
+urllib3

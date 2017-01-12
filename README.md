@@ -19,6 +19,12 @@ sudo bash deploy_without_docker.sh
 
 Wait that the deployment is finished (give to the system one or two minutes).
 
+To run the next step, you will need to install a few Python libraries:
+
+```shell
+pip install -r requirements.txt
+```
+
 ### Run on roger
 
 > Don't forget to update the *infrastructure_description_roger.json* file with your account information
