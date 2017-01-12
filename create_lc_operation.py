@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
+import datetime
 import sys
 import time
 import uuid
 
+from dateutil.tz import tzlocal
 import requests
 from requests.auth import HTTPBasicAuth
+
+RESERVATION_ID = '85f97018-f1a1-423e-81c6-2e71e7488fef'
 
 if __name__ == "__main__":
     """Create an operation and run it, to demonstrate the architecture"""
@@ -43,7 +47,11 @@ if __name__ == "__main__":
         "appliance": "hadoop",
         "operation": operation_id,
         "cwd": "~",
-        "script": "export ENV_VAR=!{env_var} ; curl https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/archive.tgz > __archive.tar.gz ; tar -xzf __archive.tar.gz ; rm -f __archive.tar.gz ; bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
+        "script": "export ENV_VAR=!{env_var} ; "
+                  "curl https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/archive.tgz > __archive.tar.gz ; "
+                  "tar -xzf __archive.tar.gz ; "
+                  "rm -f __archive.tar.gz ; "
+                  "bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
         "output_type": "file",
         "output_parameters": """{"file_path": "output.txt"}"""
     }
@@ -93,7 +101,8 @@ if __name__ == "__main__":
         "callback_url": "http://plop.org",
         "force_spawn_cluster": "",
         "resource_provisioner_token": resource_manager_token ,
-        "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
+        "hints": """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
+        # "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
     }
     print(" - preparing an execution of the line_counter operation")
     r = requests.post("%s/executions/" % (operation_manager_url), json=execution_dict,
@@ -128,7 +137,8 @@ if __name__ == "__main__":
         current_status = data["status"]
 
         if current_status != previous_status:
-            print("   => %s" % (current_status))
+            now = datetime.datetime.now(tz=tzlocal())
+            print(" ({})  => {}".format(now.strftime('%H:%M:%S'), current_status))
             previous_status = current_status
 
         if current_status == "FINISHED":

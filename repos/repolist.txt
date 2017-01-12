@@ -4,3 +4,4 @@ appliance_registry
 resource_manager
 architecture_portal
 central_authentication_service
+common-dibbs

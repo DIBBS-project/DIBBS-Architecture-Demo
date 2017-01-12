@@ -17,19 +17,17 @@ RUN systemctl disable redis-server
 RUN pip install --upgrade pip
 
 # this should get most of the packages the services want beforehand and cache
-# them, so later pip installs are faster (COPY invalidates all later layers)
+# them, so later pip installs are faster (COPY usually invalidates all later
+# layers)
 RUN pip install \
     'celery[redis]' \
     'certifi==2016.8.8' \
-    'common-dibbs' \
     'django>=1.8,<1.9' \
     'django-allauth==0.27.0' \
-    'django-cas-client==1.2.0' \
     'django-filter' \
     'django-jsonfield' \
     'django-periodically' \
     'django-states' \
-    'django-secure' \
     'django-sslserver' \
     'djangorestframework>=3.5,<3.6' \
     'jinja2' \
@@ -52,13 +50,10 @@ COPY repos /sources
 
 # Install requirements
 WORKDIR /sources
+RUN pip install ./common-dibbs/
 RUN pip install -r central_authentication_service/requirements.txt
 RUN pip install -r operation_registry/requirements.txt
 RUN pip install -r operation_manager/requirements.txt
 RUN pip install -r appliance_registry/requirements.txt
 RUN pip install -r resource_manager/requirements.txt
 RUN pip install -r architecture_portal/requirements.txt
-
-# WORKAROUND TO PUT THE PUBLIC IP IN A CONFIGURATION FILE (if needed)
-RUN echo 'PUBLIC_IP=$(curl ipinfo.io/ip); if [[ "$PUBLIC_IP" == 129* ]] || [[ "$PUBLIC_IP" == 141* ]]; then mkdir -p /etc/dibbs/; echo "{\"address\": \"$PUBLIC_IP\"}" > /etc/dibbs/dibbs.json; fi;' > /etc/ip.sh
-RUN chmod +x /etc/ip.sh; bash /etc/ip.sh
