@@ -1,20 +1,5 @@
-FROM ubuntu:16.04
+FROM python:2.7
 MAINTAINER Badock
-
-# Download dependencies
-RUN apt-get update
-RUN apt-get install -y \
-    python-setuptools \
-    python-dev \
-    build-essential \
-    python-pip \
-    libffi-dev \
-    libssl-dev \
-    curl \
-    redis-server
-
-RUN systemctl disable redis-server
-RUN pip install --upgrade pip
 
 # this should get most of the packages the services want beforehand and cache
 # them, so later pip installs are faster (COPY usually invalidates all later
@@ -26,7 +11,6 @@ RUN pip install \
     'django-allauth==0.27.0' \
     'django-filter' \
     'django-jsonfield' \
-    'django-periodically' \
     'django-states' \
     'django-sslserver' \
     'djangorestframework>=3.5,<3.6' \

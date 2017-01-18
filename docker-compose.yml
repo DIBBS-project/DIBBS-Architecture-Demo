@@ -2,6 +2,8 @@ version: '2'
 services:
   central_authentication_service:
     build: .
+    volumes:
+      - ./repos/central_authentication_service:/sources/central_authentication_service
     working_dir: /sources/central_authentication_service
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:7000"
     expose:
@@ -17,20 +19,17 @@ services:
   operation_manager:
     network_mode: "service:central_authentication_service"
     build: .
+    volumes:
+      - ./repos/operation_manager:/sources/operation_manager
     working_dir: /sources/operation_manager
     command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat & python manage.py runserver 0.0.0.0:8001 && fg"
     depends_on:
       - "redis-server"
-  # operation_manager_worker:
-  #   network_mode: "service:central_authentication_service"
-  #   build: .
-  #   working_dir: /sources/operation_manager
-  #   command: bash -c "export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat"
-  #   depends_on:
-  #     - "redis-server"
   operation_registry:
     network_mode: "service:central_authentication_service"
     build: .
+    volumes:
+      - ./repos/operation_registry:/sources/operation_registry
     working_dir: /sources/operation_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
     depends_on:
@@ -38,6 +37,8 @@ services:
   resource_manager:
     network_mode: "service:central_authentication_service"
     build: .
+    volumes:
+      - ./repos/resource_manager:/sources/resource_manager
     working_dir: /sources/resource_manager
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
     depends_on:
@@ -45,6 +46,8 @@ services:
   appliance_registry:
     network_mode: "service:central_authentication_service"
     build: .
+    volumes:
+      - ./repos/appliance_registry:/sources/appliance_registry
     working_dir: /sources/appliance_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
     depends_on:
@@ -52,14 +55,13 @@ services:
   architecture_portal:
     network_mode: "service:central_authentication_service"
     build: .
+    volumes:
+      - ./repos/architecture_portal:/sources/architecture_portal
     working_dir: /sources/architecture_portal
     command: bash -c "python manage.py runserver 0.0.0.0:8005"
     depends_on:
       - "central_authentication_service"
   redis-server:
     network_mode: "service:central_authentication_service"
-    build: .
-    working_dir: /sources/architecture_portal
-    command: bash -c "redis-server"
-    # depends_on:
-    #   - "central_authentication_service"
+    image: redis:alpine
+    command: redis-server
