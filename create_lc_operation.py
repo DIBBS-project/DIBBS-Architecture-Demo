@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
+import json
 import sys
 import time
 import uuid
@@ -10,6 +11,24 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 RESERVATION_ID = '85f97018-f1a1-423e-81c6-2e71e7488fef'
+DIBBS_USER = 'grace'
+
+DIBBS_USER_HEADER = {b'Dibbs-Thing': json.dumps({'user': DIBBS_USER})}
+
+
+def check_response(response, dumpfile='response-dump.log'):
+    try:
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print("   {}".format(str(e)))
+        if dumpfile:
+            with open(dumpfile, 'wb') as f:
+                print("dumping response to '{}'...".format(dumpfile))
+                f.write(r.response)
+        raise
+    else:
+        print("   OK")
+
 
 if __name__ == "__main__":
     """Create an operation and run it, to demonstrate the architecture"""
@@ -32,14 +51,15 @@ if __name__ == "__main__":
         "file_parameters": """["input_file"]"""
     }
     print(" - creating of the line_counter operation")
-    r = requests.post("%s/operations/" % (operation_registry_url), json=operation_dict,
-                      auth=HTTPBasicAuth('admin', 'pass'))
+    r = requests.post(
+        "%s/operations/" % (operation_registry_url),
+        json=operation_dict,
+        auth=HTTPBasicAuth('admin', 'pass'),
+        headers=DIBBS_USER_HEADER,
+    )
     operation = r.json()
     operation_id = r.json().get("id", 1)
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
+    check_response(r)
 
     # Implementing the Operation based on the hadoop appliance.
     implementation_dict = {
@@ -56,13 +76,14 @@ if __name__ == "__main__":
         "output_parameters": """{"file_path": "output.txt"}"""
     }
     print(" - implementing of the line_counter operation => %s")
-    r = requests.post("%s/operationversions/" % (operation_registry_url), json=implementation_dict,
-                      auth=HTTPBasicAuth('admin', 'pass'))
+    r = requests.post(
+        "%s/operationversions/" % (operation_registry_url),
+        json=implementation_dict,
+        auth=HTTPBasicAuth('admin', 'pass'),
+        headers=DIBBS_USER_HEADER,
+    )
     implementation = r.json()
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
+    check_response(r)
 
     # Creating an instance of the Operation
     instance_dict = {
@@ -72,58 +93,34 @@ if __name__ == "__main__":
         "files": """{"input_file": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/input.txt"}"""
     }
     print(" - creating an instance of the line_counter operation")
-    r = requests.post("%s/instances/" % (operation_manager_url), json=instance_dict,
-                      auth=HTTPBasicAuth('admin', 'pass'))
+    r = requests.post(
+        "%s/instances/" % (operation_manager_url),
+        json=instance_dict,
+        auth=HTTPBasicAuth('admin', 'pass'),
+        headers=DIBBS_USER_HEADER,
+    )
     instance = r.json()
     instance_id = instance.get("id", 1)
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
-        r.raise_for_status()
-
-    # Get a token from the resource manager
-    # get_token_dict = {
-    #     "username": "admin",
-    #     "password": "pass"
-    # }
-    # r = requests.post("%s/api-token-auth/" % (resource_manager_url), json=get_token_dict,
-    #                   auth=HTTPBasicAuth('admin', 'pass'))
-    # resource_manager_token = r.json().get("token", "")
-    # print(" - getting a token from the resource manager => %s" % (r.status_code))
-    # if r.status_code < 300:
-    #     print("   OK")
-    # else:
-    #     print("   ERROR")
+    check_response(r)
 
     # Prepare an execution of the previously created instance
     execution_dict = {
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
         "force_spawn_cluster": "",
-        "resource_provisioner_token": 'resource_manager_token',
         "hints": """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
         # "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
     }
     print(" - preparing an execution of the line_counter operation")
-    r = requests.post("%s/executions/" % (operation_manager_url), json=execution_dict,
-                      auth=HTTPBasicAuth('admin', 'pass'))
+    r = requests.post(
+        "%s/executions/" % (operation_manager_url),
+        json=execution_dict,
+        auth=HTTPBasicAuth('admin', 'pass'),
+        headers=DIBBS_USER_HEADER,
+    )
     execution = r.json()
     execution_id = execution.get("id", 0)
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
-        r.raise_for_status()
-
-    # Launch the execution of the operation instance
-    print(" - launching the execution of the line_counter operation => %s" % (r.status_code))
-    r = requests.get("%s/exec/%s/run" % (operation_manager_url, execution_id),
-                     auth=HTTPBasicAuth('admin', 'pass'))
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
+    check_response(r)
 
     # Wait for the execution to finish
     print(" - Waiting for the execution to finish")
