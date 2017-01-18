@@ -52,7 +52,9 @@ def main():
                          auth=HTTPBasicAuth('admin', 'pass'))
 
         if r.status_code != 200:
-            print("could not find the public key for user %s :(" % (user_id,))
+            print("could not retrieve the public key for user %s :(" % (user_id,))
+            print('HTTP {}'.format(r.status_code))
+            print(r.content[:1000])
             return 1
 
         public_key_str = r.json()["public_key"]

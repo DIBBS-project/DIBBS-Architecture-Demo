@@ -47,11 +47,11 @@ if __name__ == "__main__":
         "appliance": "hadoop",
         "operation": operation_id,
         "cwd": "~",
-        "script": "export ENV_VAR=!{env_var} ; "
-                  "curl https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/archive.tgz > __archive.tar.gz ; "
-                  "tar -xzf __archive.tar.gz ; "
-                  "rm -f __archive.tar.gz ; "
-                  "bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
+        "script": r"export ENV_VAR=!{env_var} ; "
+                  r"curl https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/archive.tgz > __archive.tar.gz ; "
+                  r"tar -xzf __archive.tar.gz ; "
+                  r"rm -f __archive.tar.gz ; "
+                  r"bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
         "output_type": "file",
         "output_parameters": """{"file_path": "output.txt"}"""
     }
@@ -80,27 +80,28 @@ if __name__ == "__main__":
         print("   OK")
     else:
         print("   ERROR")
+        r.raise_for_status()
 
     # Get a token from the resource manager
-    get_token_dict = {
-        "username": "admin",
-        "password": "pass"
-    }
-    r = requests.post("%s/api-token-auth/" % (resource_manager_url), json=get_token_dict,
-                      auth=HTTPBasicAuth('admin', 'pass'))
-    resource_manager_token = r.json().get("token", "")
-    print(" - getting a token from the resource manager => %s" % (r.status_code))
-    if r.status_code < 300:
-        print("   OK")
-    else:
-        print("   ERROR")
+    # get_token_dict = {
+    #     "username": "admin",
+    #     "password": "pass"
+    # }
+    # r = requests.post("%s/api-token-auth/" % (resource_manager_url), json=get_token_dict,
+    #                   auth=HTTPBasicAuth('admin', 'pass'))
+    # resource_manager_token = r.json().get("token", "")
+    # print(" - getting a token from the resource manager => %s" % (r.status_code))
+    # if r.status_code < 300:
+    #     print("   OK")
+    # else:
+    #     print("   ERROR")
 
     # Prepare an execution of the previously created instance
     execution_dict = {
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
         "force_spawn_cluster": "",
-        "resource_provisioner_token": resource_manager_token ,
+        "resource_provisioner_token": 'resource_manager_token',
         "hints": """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
         # "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
     }
@@ -113,6 +114,7 @@ if __name__ == "__main__":
         print("   OK")
     else:
         print("   ERROR")
+        r.raise_for_status()
 
     # Launch the execution of the operation instance
     print(" - launching the execution of the line_counter operation => %s" % (r.status_code))
