@@ -6,11 +6,4 @@ if ! which docker-compose > /dev/null; then
   exit 1
 fi
 
-# Install the services in containers
-docker-compose down
-docker-compose rm -f
-docker-compose pull
-docker-compose build $1
-docker-compose up -d
-
-exit 0
+./run_with_docker.sh

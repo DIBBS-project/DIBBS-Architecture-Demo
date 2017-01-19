@@ -79,13 +79,15 @@ function install_and_configure_agents() {
     ############################################################################
     # Cloning Agents projects and preparing dependencies
     ############################################################################
-    git clone -b development https://github.com/DIBBS-project/operation_registry.git
-    git clone -b development https://github.com/DIBBS-project/operation_manager.git
-    git clone -b development https://github.com/DIBBS-project/appliance_registry.git
-    git clone -b development https://github.com/DIBBS-project/resource_manager.git
-    git clone -b master https://github.com/DIBBS-project/architecture_portal.git
-    git clone -b development https://github.com/DIBBS-project/central_authentication_service.git
+    git clone https://github.com/DIBBS-project/operation_registry.git
+    git clone https://github.com/DIBBS-project/operation_manager.git
+    git clone https://github.com/DIBBS-project/appliance_registry.git
+    git clone https://github.com/DIBBS-project/resource_manager.git
+    git clone https://github.com/DIBBS-project/architecture_portal.git
+    git clone https://github.com/DIBBS-project/central_authentication_service.git
+    git clone https://github.com/DIBBS-project/common-dibbs.git
 
+    sudo pip install ./common-dibbs/
     sudo pip install -r central_authentication_service/requirements.txt
     sudo pip install -r operation_registry/requirements.txt
     sudo pip install -r operation_manager/requirements.txt

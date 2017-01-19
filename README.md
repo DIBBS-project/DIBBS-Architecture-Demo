@@ -2,48 +2,49 @@
 
 Operations management platform that combines access to data and computation within one geospatial portal. More details can be found in the following paper [docs/publishing_platform_for_geospatial_operations.pdf](https://github.com/DIBBS-project/DIBBS-Architecture-Demo/blob/master/docs/publishing_platform_for_geospatial_operations.pdf).
 
-## TLDR;
+## Quick-start
 
-### Deploy
-Run one of following commands to setup the DIBBs platform
+### Setup
 
-```shell
+#### with Docker
+
+```bash
 sudo bash deploy_with_docker.sh
 ```
 
-or
+#### without Docker
 
-```shell
+> *This is currently not maintained and may be broken!*
+
+```bash
 sudo bash deploy_without_docker.sh
-```
-
-Wait that the deployment is finished (give to the system one or two minutes).
-
-To run the next step, you will need to install a few Python libraries:
-
-```shell
 pip install -r requirements.txt
 ```
 
-### Run on roger
+### Run Jobs
 
-> Don't forget to update the *infrastructure_description_roger.json* file with your account information
+#### on ROGER
 
-run the following "one liner" script:
+1. Update your account information in `infrastructure_description_roger.json`
 
-```
-bash onliner_init_script.sh --run-on-roger
-```
+2. Run the following "one liner" script:
+  ```
+  ./onliner_init_script.sh --run-on-roger
+  ```
 
-### Run on chameleon (baremetal)
+#### on Chameleon (baremetal)
 
-> Don't forget to update the *infrastructure_description_chameleon.json* file with your account information
+1. Update your account information in `infrastructure_description_chameleon.json`
 
-run the following "one liner" script:
+2. Edit `RESERVATION_ID` in `create_lc_operation.py` with the *reservation* ID from your lease containing at least 3 nodes.
 
-```
-bash onliner_init_script.sh
-```
+3. Run the following "one liner" script:
+
+  ```
+  ./onliner_init_script.sh
+  ```
+
+---
 
 ## Installation and run
 
