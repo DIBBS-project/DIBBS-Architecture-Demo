@@ -1,6 +1,7 @@
 certifi
 common-dibbs
 pycrypto
+python-dateutil
 requests
 six
 urllib3

@@ -22,8 +22,7 @@ RUN pip install \
     'python_dateutil>=2.5.3' \
     'python-heatclient' \
     'python-keystoneclient' \
-    # newer novaclients don't work; 401s where this works fine.
-    'python-novaclient==3.3.0' \
+    'python-novaclient' \
     'redis' \
     'six>=1.8.0' \
     'setuptools>=21.0.0' \
