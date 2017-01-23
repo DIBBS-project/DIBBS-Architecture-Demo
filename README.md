@@ -9,6 +9,7 @@ Operations management platform that combines access to data and computation with
 #### with Docker
 
 ```bash
+export GIT_BRANCH=anand-testing
 sudo bash deploy_with_docker.sh
 pip install -r requirements.txt
 ```
