@@ -10,6 +10,7 @@ Operations management platform that combines access to data and computation with
 
 ```bash
 sudo bash deploy_with_docker.sh
+pip install -r requirements.txt
 ```
 
 #### without Docker
