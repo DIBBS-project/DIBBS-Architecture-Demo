@@ -103,13 +103,17 @@ if __name__ == "__main__":
     instance_id = instance.get("id", 1)
     check_response(r)
 
+    if len(sys.argv) > 1 and sys.argv[1] == '--run-on-roger':
+        hints = """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
+    else:
+        hints = """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
+
     # Prepare an execution of the previously created instance
     execution_dict = {
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
         "force_spawn_cluster": "",
-        "hints": """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
-        # "hints": """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
+        "hints": hints
     }
     print(" - preparing an execution of the line_counter operation")
     r = requests.post(
