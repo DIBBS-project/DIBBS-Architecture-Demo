@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+"""Create an operation and run it, to demonstrate the architecture"""
+from __future__ import absolute_import, print_function, unicode_literals
 
+import argparse
 import datetime
 import json
 import sys
@@ -10,36 +13,27 @@ from dateutil.tz import tzlocal
 import requests
 from requests.auth import HTTPBasicAuth
 
-RESERVATION_ID = '85f97018-f1a1-423e-81c6-2e71e7488fef'
-DIBBS_USER = 'grace'
+import common_dibbs.auth as dibbs_auth
 
-DIBBS_USER_HEADER = {b'Dibbs-Thing': json.dumps({'user': DIBBS_USER})}
+
+RESERVATION_ID = 'fe8d340f-053a-41cc-9052-8d3ba26f67cd'
 
 
 def check_response(response, dumpfile='response-dump.log'):
     try:
-        r.raise_for_status()
+        response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         print("   {}".format(str(e)))
         if dumpfile:
             with open(dumpfile, 'wb') as f:
                 print("dumping response to '{}'...".format(dumpfile))
-                f.write(r.response)
+                f.write(response.content)
         raise
     else:
         print("   OK")
 
 
-if __name__ == "__main__":
-    """Create an operation and run it, to demonstrate the architecture"""
-
-    # target_host = "141.142.170.178"
-    target_host = "127.0.0.1"
-
-    operation_registry_url = "http://%s:8000" % (target_host)
-    operation_manager_url = "http://%s:8001" % (target_host)
-    resource_manager_url = "http://%s:8002" % (target_host)
-
+def create_operation(or_url, headers):
     print("- Building the line_counter example")
 
     # Creation of an Operation
@@ -50,17 +44,19 @@ if __name__ == "__main__":
         "logo_url": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/dibbs/linecounter.png",
         "file_parameters": """["input_file"]"""
     }
-    print(" - creating of the line_counter operation")
+    print(" - creating the line_counter operation")
     r = requests.post(
-        "%s/operations/" % (operation_registry_url),
+        "{}/operations/".format(or_url),
         json=operation_dict,
-        auth=HTTPBasicAuth('admin', 'pass'),
-        headers=DIBBS_USER_HEADER,
+        headers=headers,
     )
-    operation = r.json()
-    operation_id = r.json().get("id", 1)
     check_response(r)
+    operation = r.json()
 
+    return operation
+
+
+def create_implementation(or_url, headers, operation_id):
     # Implementing the Operation based on the hadoop appliance.
     implementation_dict = {
         "name": "line_counter_hadoop",
@@ -77,14 +73,16 @@ if __name__ == "__main__":
     }
     print(" - implementing of the line_counter operation => %s")
     r = requests.post(
-        "%s/operationversions/" % (operation_registry_url),
+        "{}/operationversions/".format(or_url),
         json=implementation_dict,
-        auth=HTTPBasicAuth('admin', 'pass'),
-        headers=DIBBS_USER_HEADER,
+        headers=headers,
     )
-    implementation = r.json()
     check_response(r)
+    implementation = r.json()
+    return implementation
 
+
+def create_instance(om_url, headers, operation_id):
     # Creating an instance of the Operation
     instance_dict = {
         "name": "line_counter_instance",
@@ -94,21 +92,17 @@ if __name__ == "__main__":
     }
     print(" - creating an instance of the line_counter operation")
     r = requests.post(
-        "%s/instances/" % (operation_manager_url),
+        "%s/instances/" % (om_url),
         json=instance_dict,
-        auth=HTTPBasicAuth('admin', 'pass'),
-        headers=DIBBS_USER_HEADER,
+        headers=headers,
     )
-    instance = r.json()
-    instance_id = instance.get("id", 1)
     check_response(r)
 
-    if len(sys.argv) > 1 and sys.argv[1] == '--run-on-roger':
-        hints = """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
-    else:
-        hints = """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
+    instance = r.json()
+    return instance
 
-    # Prepare an execution of the previously created instance
+
+def prepare_execution(om_url, headers, instance_id, hints):
     execution_dict = {
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
@@ -117,24 +111,26 @@ if __name__ == "__main__":
     }
     print(" - preparing an execution of the line_counter operation")
     r = requests.post(
-        "%s/executions/" % (operation_manager_url),
+        "%s/executions/" % (om_url),
         json=execution_dict,
-        auth=HTTPBasicAuth('admin', 'pass'),
-        headers=DIBBS_USER_HEADER,
+        headers=headers,
     )
-    execution = r.json()
-    execution_id = execution.get("id", 0)
     check_response(r)
 
-    # Wait for the execution to finish
+    execution = r.json()
+    return execution
+
+
+def wait_for_execution(om_url, headers, execution_id):
     print(" - Waiting for the execution to finish")
 
-    execution_has_finished = False
     current_status = None
     previous_status = ""
-    while not execution_has_finished:
-        r = requests.get("%s/executions/%s" % (operation_manager_url, execution_id),
-                         auth=HTTPBasicAuth('admin', 'pass'))
+    while True:
+        r = requests.get(
+            url="{}/executions/{}".format(om_url, execution_id),
+            headers=headers,
+        )
 
         data = r.json()
         current_status = data["status"]
@@ -145,15 +141,17 @@ if __name__ == "__main__":
             previous_status = current_status
 
         if current_status == "FINISHED":
-            execution_has_finished = True
+            return
 
-        if not execution_has_finished:
-            time.sleep(2)
+        time.sleep(2)
 
-    # Download the output of the execution
+
+def download_output(om_url, headers, execution_id):
     print(" - Download the output of the execution")
-    r = requests.get("%s/executions/%s" % (operation_manager_url, execution_id),
-                     auth=HTTPBasicAuth('admin', 'pass'))
+    r = requests.get(
+        url="{}/executions/{}".format(om_url, execution_id),
+        headers=headers,
+    )
 
     data = r.json()
 
@@ -169,4 +167,41 @@ if __name__ == "__main__":
 
         print("   => output has been downloaded in %s" % (output_file_path))
 
-    sys.exit(0)
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+
+    parser.add_argument('--run-on-roger',
+        action='store_true', help='Run on Roger, rather than Chameleon')
+    parser.add_argument('-H', '--host',
+        type=str, help='DIBBs host address', default='127.0.0.1')
+    parser.add_argument('-u', '--user',
+        type=str, help='DIBBs username', default='alice')
+
+    args = parser.parse_args()
+
+    or_url = "http://%s:8000" % (args.host)
+    om_url = "http://%s:8001" % (args.host)
+    rm_url = "http://%s:8002" % (args.host)
+
+    if args.run_on_roger:
+        hints = """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
+    else:
+        hints = """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
+
+    headers = dibbs_auth.client_auth_headers(args.user)
+
+    operation = create_operation(or_url, headers)
+    implementation = create_implementation(or_url, headers, operation['id'])
+    instance = create_instance(om_url, headers, operation['id'])
+    execution = prepare_execution(om_url, headers, instance['id'], hints)
+
+    # Wait for the execution to finish
+    wait_for_execution(om_url, headers, execution['id'])
+
+    # Download the output of the execution
+    download_output(om_url, headers, execution['id'])
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -6,9 +6,16 @@ import getpass
 import json
 import sys
 
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+
 import requests
 from requests.auth import HTTPBasicAuth
+
+import common_dibbs.auth as dibbs_auth
+
+
+USERNAME = 'alice'
 
 
 def main():
@@ -36,20 +43,28 @@ def main():
         project_name = credential["project_name"]
         infrastructure_name = credential["infrastructure"]
         credential_name = credential["name"]
+        password = getpass.getpass(
+            "Please provide the OpenStack password for ({}, {})@{}:".format(
+                username, project_name, infrastructure_name
+        ))
 
         # Creating a new user if needed
-        user_dict = {
-            "username": username,
-            "password": "foo",
-            "project": project_name
-        }
-        r = requests.post("%s/users/" % (resource_manager_url), json=user_dict, auth=HTTPBasicAuth('admin', 'pass'))
-
-        user_id = 1
+        # user_dict = {
+        #     "username": username,
+        #     "password": "foo",
+        #     "project": project_name
+        # }
+        # r = requests.post(
+        #     url="{}/users/".format(resource_manager_url),
+        #     json=user_dict,
+        #     headers=dibbs_auth.client_auth_headers(USERNAME),
+        # )
 
         # Get the key of the current user
-        r = requests.get("%s/rsa_public_key/%s/" % (resource_manager_url, user_id),
-                         auth=HTTPBasicAuth('admin', 'pass'))
+        r = requests.get(
+            "{}/rsa_public_key/{}".format(resource_manager_url, USERNAME),
+            headers=dibbs_auth.client_auth_headers(USERNAME),
+        )
 
         if r.status_code != 200:
             print("could not retrieve the public key for user %s :(" % (user_id,))
@@ -59,33 +74,32 @@ def main():
 
         public_key_str = r.json()["public_key"]
         print("(0) => %s (%s)" % (public_key_str, hash(public_key_str)))
-        key = RSA.importKey(public_key_str)
+        public_key = RSA.importKey(public_key_str)
 
         # Upload new credentials for the new user
-        password = getpass.getpass("please provide an OpenStack password for (%s, %s)@%s:" % (
-                                    username, project_name, infrastructure_name,))
         credentials = {
             "username": username,
             "password": password,
             "project": project_name
         }
-        uncrypted_json_credentials = "%s" % (json.dumps(credentials))
+        message = json.dumps(credentials).encode('utf-8')
+        cipher = PKCS1_OAEP.new(public_key)
+        cipher_text = cipher.encrypt(message)
 
-        public_key = RSA.importKey(public_key_str)
-        enc_data = public_key.encrypt(uncrypted_json_credentials, 32)
-
-        crypted_json_credentials_b64 = base64.b64encode("%s" % (enc_data))
+        cipher_text_b64 = base64.b64encode(cipher_text)
 
         # Upload the credentials to the resource_manager
-        credentials_dict = {
-            "credentials": crypted_json_credentials_b64,
-            "site_name": infrastructure_name,
-            "name": credential_name,
-            "user": user_id
-        }
 
-        r = requests.post("%s/credentials/" % (resource_manager_url), json=credentials_dict,
-                          auth=HTTPBasicAuth('admin', 'pass'))
+        r = requests.post(
+            "{}/credentials/".format(resource_manager_url),
+            json={
+                "credentials": cipher_text_b64,
+                "site_name": infrastructure_name,
+                "name": credential_name,
+                "user": USERNAME,
+            },
+            headers=dibbs_auth.client_auth_headers(USERNAME),
+        )
 
         print(r.status_code)
         print(r.json())

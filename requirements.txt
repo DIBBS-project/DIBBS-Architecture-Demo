@@ -1,5 +1,5 @@
 certifi
-common-dibbs
+-e repos/common-dibbs
 pycrypto
 python-dateutil
 requests

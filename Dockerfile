@@ -33,7 +33,7 @@ COPY repos /sources
 
 # Install requirements
 WORKDIR /sources
-RUN pip install ./common-dibbs/
+RUN pip install -e ./common-dibbs/
 RUN pip install -r central_authentication_service/requirements.txt
 RUN pip install -r operation_registry/requirements.txt
 RUN pip install -r operation_manager/requirements.txt
