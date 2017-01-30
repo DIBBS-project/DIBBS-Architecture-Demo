@@ -18,7 +18,10 @@ import common_dibbs.auth as dibbs_auth
 USERNAME = 'alice'
 
 
-def main():
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('configuration_file', type=str)
@@ -27,7 +30,7 @@ def main():
     parser.add_argument('-p', '--port', type=int, default=8002,
         help='Resource manager port')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:])
 
     configuration_file_path = args.configuration_file
     target_host = args.host
@@ -73,8 +76,10 @@ def main():
             return 1
 
         public_key_str = r.json()["public_key"]
-        print("(0) => %s (%s)" % (public_key_str, hash(public_key_str)))
         public_key = RSA.importKey(public_key_str)
+
+        print("Storing credentials using below key:")
+        print(public_key_str)
 
         # Upload new credentials for the new user
         credentials = {

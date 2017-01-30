@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ "$1" == "--run-on-roger" ]; then
     INFRASTRUCTURE_DESCRIPTION_FILE="infrastructure_description_roger.json"
@@ -8,6 +9,6 @@ fi
 
 python create_os_users.py $INFRASTRUCTURE_DESCRIPTION_FILE
 python create_appliances.py $INFRASTRUCTURE_DESCRIPTION_FILE
-python create_lc_operation.py $1
+python create_lc_operation.py $1 both
 
 exit 0

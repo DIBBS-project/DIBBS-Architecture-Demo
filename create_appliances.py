@@ -17,16 +17,18 @@ resource_manager_url = "http://%s:8002" % (target_host)
 
 image_name = "CENTOS-7_HADOOP"
 
-if __name__ == "__main__":
+def main(argv=None):
     """Create appliances to demonstrate the architecture"""
+    if argv is None:
+        argv = sys.argv
 
     configuration_file_path = None
-    if len(sys.argv) > 1:
-        configuration_file_path = sys.argv[1]
+    if len(argv) > 1:
+        configuration_file_path = argv[1]
 
     if configuration_file_path is None:
         print("No configuration file passed as a parameter :-(")
-        sys.exit(1)
+        return 1
 
     with open(configuration_file_path) as data_file:
         infrastructures = json.load(data_file)["infrastructures"]
@@ -52,8 +54,8 @@ if __name__ == "__main__":
                 infrastructure_name, r.status_code, r.json() if r.status_code >= 400 else ""))
 
         skip_actions_creation = False
-        if len(sys.argv) > 1:
-            if sys.argv[1] == "skip":
+        if len(argv) > 1:
+            if argv[1] == "skip":
                 skip_actions_creation = True
 
         # If needed, create actions
@@ -156,4 +158,7 @@ if __name__ == "__main__":
                             )
                             print("    - creation of script_impl %s => %s %s" % (
                                 action_name, r.status_code, r.json() if r.status_code >= 400 else ""))
-    sys.exit(0)
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

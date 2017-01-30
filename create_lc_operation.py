@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import datetime
 import json
+from pprint import pprint
 import sys
 import time
 import uuid
@@ -16,7 +17,7 @@ from requests.auth import HTTPBasicAuth
 import common_dibbs.auth as dibbs_auth
 
 
-RESERVATION_ID = 'fe8d340f-053a-41cc-9052-8d3ba26f67cd'
+RESERVATION_ID = '975beddb-d577-4151-ba0b-548a8cca3253'
 
 
 def check_response(response, dumpfile='response-dump.log'):
@@ -34,22 +35,25 @@ def check_response(response, dumpfile='response-dump.log'):
 
 
 def create_operation(or_url, headers):
-    print("- Building the line_counter example")
-
     # Creation of an Operation
     operation_dict = {
         "name": "LineCounter",
         "description": "A simple line counter that can be used to demonstrate the complete architecture.",
-        "string_parameters": """["env_var", "parameter"]""",
+        "string_parameters": json.dumps(
+            ["env_var", "parameter"]
+        ),
         "logo_url": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/dibbs/linecounter.png",
-        "file_parameters": """["input_file"]"""
+        "file_parameters": json.dumps(
+            ["input_file"]
+        ),
     }
-    print(" - creating the line_counter operation")
+    print(" - Creating the line_counter operation...", end="")
     r = requests.post(
         "{}/operations/".format(or_url),
         json=operation_dict,
         headers=headers,
     )
+    print(r.status_code)
     check_response(r)
     operation = r.json()
 
@@ -69,14 +73,17 @@ def create_implementation(or_url, headers, operation_id):
                   r"rm -f __archive.tar.gz ; "
                   r"bash run_job.sh @{input_file} !{parameter} > stdout 2> stderr",
         "output_type": "file",
-        "output_parameters": """{"file_path": "output.txt"}"""
+        "output_parameters": json.dumps(
+            {"file_path": "output.txt"}
+        ),
     }
-    print(" - implementing of the line_counter operation => %s")
+    print(" - implementing of the line_counter operation... ", end="")
     r = requests.post(
         "{}/operationversions/".format(or_url),
         json=implementation_dict,
         headers=headers,
     )
+    print(r.status_code)
     check_response(r)
     implementation = r.json()
     return implementation
@@ -87,15 +94,21 @@ def create_instance(om_url, headers, operation_id):
     instance_dict = {
         "name": "line_counter_instance",
         "process_definition_id": operation_id,
-        "parameters": """{"env_var": "plop","parameter": "parameter"}""",
-        "files": """{"input_file": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/input.txt"}"""
+        "parameters": json.dumps({
+            "env_var": "plop",
+            "parameter": "parameter",
+        }),
+        "files": json.dumps({
+            "input_file": "https://raw.githubusercontent.com/DIBBS-project/DIBBS-Architecture-Demo/master/misc/input.txt",
+        }),
     }
-    print(" - creating an instance of the line_counter operation")
+    print(" - Creating an instance of the line_counter operation... ", end="")
     r = requests.post(
         "%s/instances/" % (om_url),
         json=instance_dict,
         headers=headers,
     )
+    print(r.status_code)
     check_response(r)
 
     instance = r.json()
@@ -107,9 +120,9 @@ def prepare_execution(om_url, headers, instance_id, hints):
         "operation_instance": instance_id,
         "callback_url": "http://plop.org",
         "force_spawn_cluster": "",
-        "hints": hints
+        "hints": hints,
     }
-    print(" - preparing an execution of the line_counter operation")
+    print(" - Preparing an execution of the line_counter operation")
     r = requests.post(
         "%s/executions/" % (om_url),
         json=execution_dict,
@@ -128,7 +141,7 @@ def wait_for_execution(om_url, headers, execution_id):
     previous_status = ""
     while True:
         r = requests.get(
-            url="{}/executions/{}".format(om_url, execution_id),
+            url="{}/executions/{}/".format(om_url, execution_id),
             headers=headers,
         )
 
@@ -143,13 +156,13 @@ def wait_for_execution(om_url, headers, execution_id):
         if current_status == "FINISHED":
             return
 
-        time.sleep(2)
+        time.sleep(5)
 
 
 def download_output(om_url, headers, execution_id):
     print(" - Download the output of the execution")
     r = requests.get(
-        url="{}/executions/{}".format(om_url, execution_id),
+        url="{}/executions/{}/".format(om_url, execution_id),
         headers=headers,
     )
 
@@ -171,12 +184,15 @@ def download_output(om_url, headers, execution_id):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
 
+    parser.add_argument('action', choices=['deploy', 'run', 'both'])
     parser.add_argument('--run-on-roger',
         action='store_true', help='Run on Roger, rather than Chameleon')
     parser.add_argument('-H', '--host',
         type=str, help='DIBBs host address', default='127.0.0.1')
     parser.add_argument('-u', '--user',
         type=str, help='DIBBs username', default='alice')
+    parser.add_argument('-i', '--instance-id', type=int,
+        help='instance_id to use (needed if run-only)')
 
     args = parser.parse_args()
 
@@ -189,18 +205,33 @@ def main():
     else:
         hints = """{{"credentials": ["chi@tacc_fg392"], "lease_id": "{}"}}""".format(RESERVATION_ID)
 
+    do_deploy = args.action in {'both', 'deploy'}
+    do_run = args.action in {'both', 'run'}
+
     headers = dibbs_auth.client_auth_headers(args.user)
 
-    operation = create_operation(or_url, headers)
-    implementation = create_implementation(or_url, headers, operation['id'])
-    instance = create_instance(om_url, headers, operation['id'])
-    execution = prepare_execution(om_url, headers, instance['id'], hints)
+    if do_deploy:
+        operation = create_operation(or_url, headers)
+        implementation = create_implementation(or_url, headers, operation['id'])
+        instance = create_instance(om_url, headers, operation['id'])
 
-    # Wait for the execution to finish
-    wait_for_execution(om_url, headers, execution['id'])
+        print(' - Created instance:')
+        pprint(instance) # so the user can call it later
 
-    # Download the output of the execution
-    download_output(om_url, headers, execution['id'])
+    else:
+        if args.instance_id is None:
+            print("Must provide instance id", file=sys.stderr)
+            return -1
+        instance = {'id': args.instance_id}
+
+    if do_run:
+        execution = prepare_execution(om_url, headers, instance['id'], hints)
+
+        # Wait for the execution to finish
+        wait_for_execution(om_url, headers, execution['id'])
+
+        # Download the output of the execution
+        download_output(om_url, headers, execution['id'])
 
 
 if __name__ == "__main__":
