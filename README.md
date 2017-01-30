@@ -1,4 +1,4 @@
-# DIBBS-Architecture-Demo
+# DIBBs Architecture Demo
 
 Operations management platform that combines access to data and computation within one geospatial portal. More details can be found in the following paper [docs/publishing_platform_for_geospatial_operations.pdf](https://github.com/DIBBS-project/DIBBS-Architecture-Demo/blob/master/docs/publishing_platform_for_geospatial_operations.pdf).
 
@@ -6,13 +6,17 @@ Operations management platform that combines access to data and computation with
 
 1. Get this repo
 
-    git clone https://github.com/DIBBS-project/DIBBS-Architecture-Demo.git
-    cd DIBBS-Architecture-Demo
+  ```bash
+  git clone https://github.com/DIBBS-project/DIBBS-Architecture-Demo.git
+  cd DIBBS-Architecture-Demo
+  ```
 
 2. Reset to stable
 
-    git fetch
-    git checkout stable
+  ```bash
+  git fetch
+  git checkout stable
+  ```
 
 ### Setup
 
@@ -21,7 +25,7 @@ Operations management platform that combines access to data and computation with
 ```bash
 sudo bash deploy_with_docker.sh
 # answer (y)es to the prompt about resetting repos to stable branch if you
-# haven't made any changes.
+# haven't made any changes (i.e. just cloned the repos).
 pip install -r requirements.txt
 ```
 
