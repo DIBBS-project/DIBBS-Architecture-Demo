@@ -4,12 +4,24 @@ Operations management platform that combines access to data and computation with
 
 ## Quick-start
 
+1. Get this repo
+
+    git clone https://github.com/DIBBS-project/DIBBS-Architecture-Demo.git
+    cd DIBBS-Architecture-Demo
+
+2. Reset to stable
+
+    git fetch
+    git checkout stable
+
 ### Setup
 
 #### with Docker
 
 ```bash
 sudo bash deploy_with_docker.sh
+# answer (y)es to the prompt about resetting repos to stable branch if you
+# haven't made any changes.
 pip install -r requirements.txt
 ```
 
@@ -45,7 +57,16 @@ pip install -r requirements.txt
   ./onliner_init_script.sh
   ```
 
+### Reusing a cluster
+
+1. Make note of the instance ID from the above script. (Hint: it's probably `1` if you've only created one)
+
+2. Call Operation script like below, filling in `<instance_id>` as per above (currently valid users are `alice`, `bob`, `cindy`, `dave`).
+
+    ./create_lc_operation.py run -i<instance_id> --user=bob`
+
 ---
+(older documentation follows...)
 
 ## Installation and run
 
@@ -82,7 +103,7 @@ sudo bash deploy_with_docker.sh
 It will install the following software:
 - docker
 
-## Bootstraping
+## Bootstrapping
 
 To bootstrap a newly deployed DIBBs platform (give one or two minutes to the system to run), you will have to do the following actions:
 
