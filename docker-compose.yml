@@ -12,6 +12,7 @@ services:
     working_dir: /sources/central_authentication_service
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:7000"
     expose:
+      - "6379"
       - "8001"
     ports:
       - "8000:8000"
@@ -20,7 +21,6 @@ services:
       - "8003:8003"
       - "8005:8005"
       - "7000:7000"
-      - "6379:6379"
   operation_manager:
     network_mode: "service:central_authentication_service"
     build: .
