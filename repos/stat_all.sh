@@ -8,7 +8,9 @@ gitstatus()
     REPO=$1
 
     echo $REPO
-    git -C $REPO status
+    pushd $REPO > /dev/null
+    git status
+    popd > /dev/null
 }
 
 while read -r REPO

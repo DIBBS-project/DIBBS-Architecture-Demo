@@ -6,7 +6,9 @@ cd $(dirname "$0")
 gitpush()
 {
     REPO=$1
-    git -C $REPO push
+    pushd $REPO > /dev/null
+    git push
+    popd > /dev/null
 }
 
 while read -r REPO

@@ -6,7 +6,9 @@ cd $(dirname "$0")
 gitpull()
 {
     REPO=$1
-    git -C $REPO pull
+    pushd $REPO > /dev/null
+    git pull
+    popd > /dev/null
 }
 
 while read -r REPO
