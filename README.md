@@ -24,10 +24,10 @@ Operations management platform that combines access to data and computation with
 
 ```bash
 sudo bash deploy_with_docker.sh
-# answer (y)es to the prompt about resetting repos to stable branch if you
-# haven't made any changes (i.e. just cloned the repos).
-pip install -r requirements.txt
+sudo pip install -r requirements.txt
 ```
+
+> ***Sidebar*** Need to remove sudo at some point. Docker daemon requires that [users are in the `docker` group](https://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo). Python needs to be done in a virtual environment to avoid trashing system Python.
 
 #### without Docker
 
