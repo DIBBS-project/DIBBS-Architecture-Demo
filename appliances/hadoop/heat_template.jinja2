@@ -13,8 +13,66 @@ resources:
     properties:
       pool: ext-net
 
+  dibbs_platform_sc:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Security group allowing an IP address or subnet to connect to DIBBs platform ports
+      name:
+        str_replace:
+          template: dibbs_platform_sc_stack_name
+          params:
+            stack_name: { get_param: "OS::stack_name" }
+      rules:
+      - remote_ip_prefix: { get_param: allowed_ip }
+        protocol: tcp
+        port_range_min: 8000
+        port_range_max: 8000
+      - remote_ip_prefix: { get_param: allowed_ip }
+        protocol: tcp
+        port_range_min: 8011
+        port_range_max: 8012
+
+  group_only_sc:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Security group allowing no traffic from outside the group
+      name:
+        str_replace:
+          template: group_only_sc_stack_name
+          params:
+            stack_name: { get_param: "OS::stack_name" }
+      rules: [
+        {
+          remote_mode: remote_group_id,
+          protocol: tcp,
+          port_range_min: 1,
+          port_range_max: 65535
+        }]
+
+  secure_access_sc:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Security group allowing only incoming SSH and ICMP from the Internet
+      name:
+        str_replace:
+          template: secure_access_sc_stack_name
+          params:
+            stack_name: { get_param: "OS::stack_name" }
+      rules: [
+        {
+          remote_ip_prefix: 0.0.0.0/0,
+          protocol: tcp,
+          port_range_min: 22,
+          port_range_max: 22
+        },
+        {
+          remote_ip_prefix: 0.0.0.0/0,
+          protocol: icmp
+        }]
+
   hadoop_master_server:
     type: OS::Nova::Server
+    depends_on: [ dibbs_platform_sc, group_only_sc, secure_access_sc, hadoop_master_server_floating_ip ]
     properties:
       name: MyHadoopClusterMaster
       flavor: { get_param: flavor_name }
@@ -23,6 +81,19 @@ resources:
       networks:
          - network: { get_param: network_name }
       scheduler_hints: { reservation: { get_param: reservation_id } }
+      security_groups:
+        - str_replace:
+            template: dibbs_platform_sc_stack_name
+            params:
+              stack_name: { get_param: "OS::stack_name" }
+        - str_replace:
+            template: group_only_sc_stack_name
+            params:
+              stack_name: { get_param: "OS::stack_name" }
+        - str_replace:
+            template: secure_access_sc_stack_name
+            params:
+              stack_name: { get_param: "OS::stack_name" }
       user_data:
         str_replace:
             template: |
@@ -112,7 +183,7 @@ resources:
 
   hadoop_slaves:
     type: OS::Heat::ResourceGroup
-    depends_on: [ hadoop_master_server ]
+    depends_on: [ hadoop_master_server, group_only_sc ]
     properties:
       count: { get_param: cluster_size }
       resource_def:
@@ -125,6 +196,11 @@ resources:
           networks:
              - network: { get_param: network_name }
           scheduler_hints: { reservation: { get_param: reservation_id } }
+          security_groups:
+            - str_replace:
+                template: group_only_sc_stack_name
+                params:
+                  stack_name: { get_param: "OS::stack_name" }
           user_data:
                 str_replace:
                     template: |
@@ -223,6 +299,9 @@ resources:
 
 # The parameters section gathers configuration from the user.
 parameters:
+  allowed_ip:
+    type: string
+    description: IP network allowed to connect to DIBBs platform ports (8000, 8011, 8012).
   key_name:
     type: string
     description: Name of a KeyPair to enable SSH access to instances
