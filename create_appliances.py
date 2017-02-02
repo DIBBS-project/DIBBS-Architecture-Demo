@@ -1,19 +1,20 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+import argparse
+import json
 import os
 import re
 import sys
-import json
-import requests
-from requests.auth import HTTPBasicAuth
 
-from common_dibbs.auth import client_auth_headers
+import requests
 
 # target_host = "141.142.170.178"
 target_host = "127.0.0.1"
 
 appliance_registry_url = "http://%s:8003" % (target_host)
 resource_manager_url = "http://%s:8002" % (target_host)
+cas_url = "http://%s:7000" % (target_host)
 
 image_name = "CENTOS-7_HADOOP"
 
@@ -22,16 +23,31 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    configuration_file_path = None
-    if len(argv) > 1:
-        configuration_file_path = argv[1]
+    parser = argparse.ArgumentParser(description=__doc__)
 
-    if configuration_file_path is None:
-        print("No configuration file passed as a parameter :-(")
-        return 1
+    parser.add_argument('config_file', type=str)
+    parser.add_argument('-u', '--username', type=str,
+        help='DIBBs Username', default='alice')
+    parser.add_argument('-p', '--password', type=str,
+        help='Password for user. Defaults to uppercased username.')
 
-    with open(configuration_file_path) as data_file:
+    args = parser.parse_args(argv[1:])
+
+    with open(args.config_file) as data_file:
         infrastructures = json.load(data_file)["infrastructures"]
+
+    username = args.username
+    password = username.upper() if args.password is None else args.password
+
+    auth_response = requests.post(
+        '{}/auth/tokens'.format(cas_url),
+        json={'username': username, 'password': password},
+    )
+    if auth_response.status_code != 200:
+        print(auth_response.text, file=sys.stderr)
+        return -1
+    auth_data = auth_response.json()
+    headers = {'Dibbs-Authorization': auth_data['token']}
 
     for infrastructure in infrastructures:
         infrastructure_name = infrastructure["name"]
@@ -47,7 +63,7 @@ def main(argv=None):
         r = requests.post(
             "{}/sites/".format(appliance_registry_url),
             json=site_dict,
-            headers=client_auth_headers('alice', 'pass'),
+            headers=headers,
         )
         print(
             "- creation of site %s => %s %s" % (
@@ -70,7 +86,7 @@ def main(argv=None):
                 r = requests.post(
                     "{}/actions/".format(appliance_registry_url),
                     json=action_dict,
-                    headers=client_auth_headers('alice', 'pass'),
+                    headers=headers,
                 )
                 print(
                     "- creation of action %s => %s %s" % (
@@ -107,7 +123,7 @@ def main(argv=None):
                 r = requests.post(
                     "{}/appliances/".format(appliance_registry_url),
                     json=appliance_dict,
-                    headers=client_auth_headers('alice', 'pass'),
+                    headers=headers,
                 )
                 print("- creation of appliance %s => %s %s" % (
                     appliance_name, r.status_code, r.json() if r.status_code >= 400 else ""))
@@ -131,7 +147,7 @@ def main(argv=None):
                     r = requests.post(
                         "{}/appliances_impl/".format(appliance_registry_url),
                         json=appliance_impl_dict,
-                        headers=client_auth_headers('alice', 'pass'),
+                        headers=headers,
                     )
                     print("  - creation of appliance_impl %s => %s %s" % (
                         appliance_impl_name, r.status_code, r.json() if r.status_code >= 400 else ""))
@@ -154,7 +170,7 @@ def main(argv=None):
                             r = requests.post(
                                 "{}/scripts/".format(appliance_registry_url),
                                 json=script_dict,
-                                headers=client_auth_headers('alice', 'pass'),
+                                headers=headers,
                             )
                             print("    - creation of script_impl %s => %s %s" % (
                                 action_name, r.status_code, r.json() if r.status_code >= 400 else ""))

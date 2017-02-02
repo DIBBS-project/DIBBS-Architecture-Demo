@@ -8,7 +8,7 @@ services:
   central_authentication_service:
     build: .
     volumes:
-      - ./repos/central_authentication_service:/sources/central_authentication_service
+      - ./repos:/sources
     working_dir: /sources/central_authentication_service
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:7000"
     expose:
@@ -25,7 +25,7 @@ services:
     network_mode: "service:central_authentication_service"
     build: .
     volumes:
-      - ./repos/operation_manager:/sources/operation_manager
+      - ./repos:/sources
     working_dir: /sources/operation_manager
     command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat & python manage.py runserver 0.0.0.0:8001 && fg"
     depends_on:
@@ -34,7 +34,7 @@ services:
     network_mode: "service:central_authentication_service"
     build: .
     volumes:
-      - ./repos/operation_registry:/sources/operation_registry
+      - ./repos:/sources
     working_dir: /sources/operation_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
     depends_on:
@@ -43,7 +43,7 @@ services:
     network_mode: "service:central_authentication_service"
     build: .
     volumes:
-      - ./repos/resource_manager:/sources/resource_manager
+      - ./repos:/sources
     working_dir: /sources/resource_manager
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
     depends_on:
@@ -52,7 +52,7 @@ services:
     network_mode: "service:central_authentication_service"
     build: .
     volumes:
-      - ./repos/appliance_registry:/sources/appliance_registry
+      - ./repos:/sources
     working_dir: /sources/appliance_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
     depends_on:
@@ -61,7 +61,7 @@ services:
     network_mode: "service:central_authentication_service"
     build: .
     volumes:
-      - ./repos/architecture_portal:/sources/architecture_portal
+      - ./repos:/sources
     working_dir: /sources/architecture_portal
     command: bash -c "python manage.py runserver 0.0.0.0:8005"
     depends_on:
