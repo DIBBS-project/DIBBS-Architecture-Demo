@@ -23,14 +23,18 @@ resources:
           params:
             stack_name: { get_param: "OS::stack_name" }
       rules:
-      - remote_ip_prefix: { get_param: allowed_ip }
-        protocol: tcp
-        port_range_min: 8000
-        port_range_max: 8000
-      - remote_ip_prefix: { get_param: allowed_ip }
-        protocol: tcp
-        port_range_min: 8011
-        port_range_max: 8012
+        repeat:
+          for_each:
+            allowed_ip: { get_param: allowed_ips }
+          template:
+          - remote_ip_prefix: allowed_ip
+            protocol: tcp
+            port_range_min: 8000
+            port_range_max: 8000
+          - remote_ip_prefix: allowed_ip
+            protocol: tcp
+            port_range_min: 8011
+            port_range_max: 8012
 
   group_only_sc:
     type: OS::Neutron::SecurityGroup
@@ -174,7 +178,7 @@ resources:
                 $username: { get_param: user_name }
                 $node_name: MyHadoopClusterMaster
                 $master_name: MyHadoopClusterMaster
-     
+
   hadoop_master_server_association:
     type: OS::Nova::FloatingIPAssociation
     properties:
@@ -299,9 +303,9 @@ resources:
 
 # The parameters section gathers configuration from the user.
 parameters:
-  allowed_ip:
-    type: string
-    description: IP network allowed to connect to DIBBs platform ports (8000, 8011, 8012).
+  allowed_ips:
+    type: comma_delimited_list
+    description: IP addresses allowed to connect to DIBBs platform ports (8000, 8011, 8012).
   key_name:
     type: string
     description: Name of a KeyPair to enable SSH access to instances
