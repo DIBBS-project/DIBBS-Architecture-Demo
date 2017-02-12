@@ -19,6 +19,7 @@ RUN pip install \
     'markdown' \
     'paramiko' \
     'pycrypto' \
+    'pyjwt==1.4.2' \
     'python_dateutil>=2.5.3' \
     'python-heatclient' \
     'python-keystoneclient' \
