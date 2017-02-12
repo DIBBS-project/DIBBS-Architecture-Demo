@@ -32,6 +32,16 @@ resources:
         port_range_min: 8011
         port_range_max: 8012
 
+        # Argonne HTTP proxies
+      - remote_ip_prefix: '146.137.70.70/31'
+        protocol: tcp
+        port_range_min: 8000
+        port_range_max: 8000
+      - remote_ip_prefix: '146.137.70.70/31'
+        protocol: tcp
+        port_range_min: 8011
+        port_range_max: 8012
+
   group_only_sc:
     type: OS::Neutron::SecurityGroup
     properties:
@@ -174,7 +184,7 @@ resources:
                 $username: { get_param: user_name }
                 $node_name: MyHadoopClusterMaster
                 $master_name: MyHadoopClusterMaster
-     
+
   hadoop_master_server_association:
     type: OS::Nova::FloatingIPAssociation
     properties:
