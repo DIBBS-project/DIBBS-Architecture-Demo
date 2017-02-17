@@ -190,7 +190,7 @@ def main():
     parser.add_argument('-H', '--host', type=str,
         help='DIBBs host address', default='127.0.0.1')
     parser.add_argument('-u', '--username', type=str,
-        help='DIBBs Username', default='alice')
+        help='DIBBs username', default='alice')
     parser.add_argument('-p', '--password', type=str,
         help='Password for user. Defaults to uppercased username.')
     parser.add_argument('-i', '--instance-id', type=int,
