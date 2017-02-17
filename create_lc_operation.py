@@ -187,18 +187,34 @@ def main():
     parser.add_argument('action', choices=['deploy', 'run', 'both'])
     parser.add_argument('--run-on-roger',
         action='store_true', help='Run on Roger, rather than Chameleon')
-    parser.add_argument('-H', '--host',
-        type=str, help='DIBBs host address', default='127.0.0.1')
-    parser.add_argument('-u', '--user',
-        type=str, help='DIBBs username', default='alice')
+    parser.add_argument('-H', '--host', type=str,
+        help='DIBBs host address', default='127.0.0.1')
+    parser.add_argument('-u', '--username', type=str,
+        help='DIBBs Username', default='alice')
+    parser.add_argument('-p', '--password', type=str,
+        help='Password for user. Defaults to uppercased username.')
     parser.add_argument('-i', '--instance-id', type=int,
         help='instance_id to use (needed if run-only)')
 
     args = parser.parse_args()
 
+    cas_url = "http://%s:7000" % (args.host)
     or_url = "http://%s:8000" % (args.host)
     om_url = "http://%s:8001" % (args.host)
-    rm_url = "http://%s:8002" % (args.host)
+    # rm_url = "http://%s:8002" % (args.host)
+
+    username = args.username
+    password = username.upper() if args.password is None else args.password
+
+    auth_response = requests.post(
+        '{}/auth/tokens'.format(cas_url),
+        json={'username': username, 'password': password},
+    )
+    if auth_response.status_code != 200:
+        print(auth_response.text, file=sys.stderr)
+        return -1
+    auth_data = auth_response.json()
+    headers = {'Dibbs-Authorization': auth_data['token']}
 
     if args.run_on_roger:
         hints = """{"credentials": ["kvm@roger_dibbs"], "lease_id": ""}"""
@@ -207,8 +223,6 @@ def main():
 
     do_deploy = args.action in {'both', 'deploy'}
     do_run = args.action in {'both', 'run'}
-
-    headers = dibbs_auth.client_auth_headers(args.user)
 
     if do_deploy:
         operation = create_operation(or_url, headers)

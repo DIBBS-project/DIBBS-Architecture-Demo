@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, print_function, unicode_literals
 
 import argparse
 import base64
@@ -10,12 +11,8 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 import requests
-from requests.auth import HTTPBasicAuth
 
-import common_dibbs.auth as dibbs_auth
-
-
-USERNAME = 'alice'
+# import common_dibbs.auth as dibbs_auth
 
 
 def main(argv=None):
@@ -27,14 +24,32 @@ def main(argv=None):
     parser.add_argument('configuration_file', type=str)
     parser.add_argument('-H', '--host', type=str, default='127.0.0.1',
         help='Resource manager host')
-    parser.add_argument('-p', '--port', type=int, default=8002,
+    parser.add_argument('-P', '--port', type=int, default=8002,
         help='Resource manager port')
+    parser.add_argument('-u', '--username', type=str,
+        help='DIBBs Username', default='alice')
+    parser.add_argument('-p', '--password', type=str,
+        help='Password for user. Defaults to uppercased username.')
 
     args = parser.parse_args(argv[1:])
 
     configuration_file_path = args.configuration_file
     target_host = args.host
     resource_manager_url = 'http://{}:{}'.format(target_host, args.port)
+    cas_url = 'http://{}:7000'.format(target_host)
+
+    dibbs_username = args.username
+    dibbs_password = dibbs_username.upper() if args.password is None else args.password
+
+    auth_response = requests.post(
+        '{}/auth/tokens'.format(cas_url),
+        json={'username': dibbs_username, 'password': dibbs_password},
+    )
+    if auth_response.status_code != 200:
+        print(auth_response.text, file=sys.stderr)
+        return -1
+    auth_data = auth_response.json()
+    headers = {'Dibbs-Authorization': auth_data['token']}
 
     with open(configuration_file_path) as data_file:
         credentials = json.load(data_file)["credentials"]
@@ -65,12 +80,12 @@ def main(argv=None):
 
         # Get the key of the current user
         r = requests.get(
-            "{}/rsa_public_key/{}".format(resource_manager_url, USERNAME),
-            headers=dibbs_auth.client_auth_headers(USERNAME),
+            "{}/rsa_public_key/{}".format(resource_manager_url, dibbs_username),
+            headers=headers,
         )
 
         if r.status_code != 200:
-            print("could not retrieve the public key for user %s :(" % (user_id,))
+            print("could not retrieve the public key for user '%s' :(".format(dibbs_username))
             print('HTTP {}'.format(r.status_code))
             print(r.content[:1000])
             return 1
@@ -101,9 +116,9 @@ def main(argv=None):
                 "credentials": cipher_text_b64,
                 "site_name": infrastructure_name,
                 "name": credential_name,
-                "user": USERNAME,
+                "user": dibbs_username,
             },
-            headers=dibbs_auth.client_auth_headers(USERNAME),
+            headers=headers,
         )
 
         print(r.status_code)
