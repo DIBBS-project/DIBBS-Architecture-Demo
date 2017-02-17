@@ -86,7 +86,7 @@ def main(argv=None):
         )
 
         if r.status_code != 200:
-            print("could not retrieve the public key for user '%s' :(".format(dibbs_username))
+            print("could not retrieve the public key for user '{}' :(".format(dibbs_username))
             print('HTTP {}'.format(r.status_code))
             print(r.content[:1000])
             return 1
