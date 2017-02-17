@@ -76,7 +76,7 @@ def main(argv=None):
         # r = requests.post(
         #     url="{}/users/".format(resource_manager_url),
         #     json=user_dict,
-        #     headers=dibbs_auth.client_auth_headers(USERNAME),
+        #     headers=dibbs_auth.client_auth_headers(dibbs_username),
         # )
 
         # Get the key of the current user
