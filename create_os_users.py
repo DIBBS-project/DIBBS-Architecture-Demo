@@ -107,7 +107,7 @@ def main(argv=None):
         cipher = PKCS1_OAEP.new(public_key)
         cipher_text = cipher.encrypt(message)
 
-        cipher_text_b64 = base64.b64encode(cipher_text)
+        cipher_text_b64 = base64.b64encode(cipher_text).decode('utf-8')
 
         # Upload the credentials to the resource_manager
 
