@@ -1,0 +1,51 @@
+# entities
+user: User,
+/*cas: Central Authentication System,*/
+ar: Appliance Registry,
+rm: Resource Manager,
+or: Operation Registry,
+om: Operation Manager,
+rma: Resource Manager Agent,
+oma: Operation Manager Agent,
+os: OpenStack Service Provider;
+
+/*user <<=>> cas : "User gets token\n(see CAS docs for details)";*/
+
+# sequence
+... : "create_appliances.py";
+user =>> ar : "Create service entry\nPOST /sites/";
+user =>> ar : "Create actions\nPOST /actions/";
+user =>> ar : "Create appliance\nPOST /appliances/";
+user =>> ar : "Create appl. implemention\nPOST /appliances_impl/";
+user =>> ar : "Create script for AI \nPOST /scripts/";
+
+---;
+
+... : "create_os_users.py";
+user =>> rm : "Get encryption key\nGET /rsa_public_key/<user>";
+user =>> rm : "Store service credentials\nPOST /credentials/";
+
+---;
+
+... : "create_lc_operation.py";
+
+/*user =>> or: "create op, impl";*/
+user =>> or : "Create operation\nPOST /operations/";
+or =>> ar : "\nGET /appliances/<name>";
+user =>> or : "Create op implemention\nPOST /operationversions/";
+
+user =>> om : "Create instance\nPOST /instances/";
+
+user =>> om : "Create execution\nPOST /executions/";
+om note om : "INITIATED" ;
+om >> user : "Execution ID";
+om box om : "Periodic Tick";
+om note om : "DEPLOYING" ;
+om =>> or : "GET /operations/<id>";
+om =>> or : "GET /operationversions/<id>";
+om =>> rm : "GET /clusters";
+rm -> om : "clusters";
+om note om : "Select cluster";
+
+user =>> om: "wait execution";
+user =>> om: "download output";

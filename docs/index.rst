@@ -11,6 +11,7 @@ Welcome to LambdaLink's documentation!
    :caption: Contents:
 
    auth
+   rm
 
 
 Indices and tables
