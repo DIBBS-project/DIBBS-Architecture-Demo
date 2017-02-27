@@ -6,6 +6,43 @@ LambdaLink resource management is designed to provide 'common' computational res
 
 The concept is partially modeled on other cloud services' execution environments and runtimes, where the developer's software in those cases includes metadata declaring the environment they expect (e.g. Python, JavaScript). The service creates the resources then passes control to the software.
 
+
+----------------------------------
+Workflow
+----------------------------------
+
+First the appliance data must be loaded into the registry so the manager can use it to instantiate resources. Most of these would be performed one-by-one by a user, rather than in an automated fashion.
+
+1. Create Site entries
+2. Create Credential entries for a LL user so the service can act upon an OpenStack deployment on behalf of the user
+3. Create Appliance with unique name
+4. Create Appliance Implementation for the Appliance by uploading a Heat template that implements the Appliance on a Site.
+
+Running, e.g. by the Operation Manager.
+
+1. Create the Cluster. Send a request to the RM (``POST /clusters``) with:
+
+  * the specific Appliance name to use,
+  * a friendly name,
+  * the number of slaves in the Cluster, and
+  * optionally hints indicating on which Site (compute resources) to run.
+
+If no hints were included, the RM decides the Site to launch the Cluster on. If the user already has a Cluster using the chosen Appliance on the Site the RM decided to use, that Cluster is reused. The Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
+
+The RM waits, polling OpenStack until it has created the hosts, and then creates Host objects to hold some of their details.
+
+The response includes:
+
+  * an ID which is used by subsequent requests to refer to the created object,
+  * the IP address of the master node to which connection attempts can be made
+
+2. View the Cluster. A request for the cluster by ID also returns the IP of the master node, to which connections can be made.
+
+3. [Unsure if working] Modify the Cluster. Issue a request to add/delete a host using the cluster ID that will cause the Cluster to increase/decrease by **one** host.
+
+4. [Unimplemented] Destroy the Cluster. Issue a request using the cluster ID to delete it
+
+
 ----------
 Objects
 ----------
@@ -77,19 +114,3 @@ Host
 =========
 
 [Vestigial, appears unneeded if Heat is used to manage stack creation -NT]
-
-
-----------------------------------
-Workflow
-----------------------------------
-
-Preparing/*mise en place*. Most of these would be performed one-by-one by a user, rather than in an automated fashion.
-
-1. Create Site entries
-2. Create Credential entries for a LL user
-3. Create Appliance with arbitrary name
-4. Create Appliance Implementation by uploading a Heat template that implements the Appliance on a Site.
-
-Running
-
-1. Create Cluster from an Appliance Implementation
