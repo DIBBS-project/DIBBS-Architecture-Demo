@@ -6,6 +6,99 @@ LambdaLink resource management is designed to provide 'common' computational res
 
 The concept is partially modeled on other cloud services' execution environments and runtimes, where the developer's software in those cases includes metadata declaring the environment they expect (e.g. Python, JavaScript). The service creates the resources then passes control to the software.
 
+----------------------------------
+Methods
+----------------------------------
+
+RM: Create Cluster
+=====================
+
+Create a Cluster object based on the desired Appliance.
+
+If no hints were included, the RM decides the Site to launch the Cluster on. If the user already has a Cluster using the chosen Appliance on the Site the RM decided to use (see *hints*), that Cluster is reused. The Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
+
+Arguments
+-----------
+
+* *user* - LL user (obtained via Authentication)
+* *name* - A friendly name for display
+* *appliance* - The name of the appliance to launch
+* *targeted_slave_count* - Desired number of slaves in the appliance
+* *hints* - (Optional) Scheduling information. Accepts an object with keys "credentials" (a list of named Credential objects) and "lease_id" (arbitrary code). One of the credentials is chosen, and the associated site is used to launch the Cluster.
+
+Response
+-----------
+
+* *id* - Unique ID of cluster
+* *master_node_ip* - IP address of the head node
+
+
+RM: Add/Remove Host
+=====================
+
+Adds or removes a single node to the specified Cluster.
+
+Arguments
+-----------
+
+* *name* - Unique ID of cluster
+
+
+RM: Store Credentials
+=========================
+
+Arguments
+-------------
+* *user* - LL user (obtained via Authentication)
+* *name* - Friendly name of the credentials
+* *site* - The Site to which these credentials belong
+* *credentials* - RSA-OAEP encrypted (obfuscated) credentials
+
+
+RM: Get Public Key
+=====================
+
+Arguments
+-------------
+* *user* - LL user (obtained via Authentication)
+
+Response
+-------------
+* *rsa_public* - RSA public key that can be used to encrypt (obfuscate) credentials for sending back to the server
+
+
+AR: Create Appliance
+=========================
+
+Arguments
+-------------
+* *user* - LL user (obtained via Authentication)
+* *name* - Unique name of the appliance. Referred to by operations.
+* *description*
+* *logo_url*
+
+
+AR: Create ApplianceImplementation
+=========================================
+
+Arguments
+-------------
+* *user* - LL user (obtained via Authentication)
+* *appliance* - Name of the appliance that is to be implemented
+* *site* - Site this implementation works on
+* *image_name* - Name of the OpenStack image (unused since Heat templates)
+* *logo_url*
+
+
+AR: Create Site
+==================
+
+Arguments
+-------------
+* *name* - Name of the site, referred to by Appliance Implementations.
+* *type* - "openstack", maybe later "xsede"?
+* *contact_url* - Root API URL for the site (Keystone for OS)
+
 
 ----------------------------------
 Workflow
