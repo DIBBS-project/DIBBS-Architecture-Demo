@@ -10,12 +10,14 @@ The concept is partially modeled on other cloud services' execution environments
 Methods
 ----------------------------------
 
-RM: Create Cluster
-=====================
+RM: Get/Create Cluster
+==========================
 
-Create a Cluster object based on the desired Appliance.
+Get or create a Cluster object based on the desired Appliance.
 
 If no hints were included, the RM decides the Site to launch the Cluster on. If the user already has a Cluster using the chosen Appliance on the Site the RM decided to use (see *hints*), that Cluster is reused. The Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
+
+One of the Credentials enumerated in a *hints* key or available to the user making the request is used to select the Site.
 
 Arguments
 -----------
@@ -24,7 +26,9 @@ Arguments
 * *name* - A friendly name for display
 * *appliance* - The name of the appliance to launch
 * *targeted_slave_count* - Desired number of slaves in the appliance
-* *hints* - (Optional) Scheduling information. Accepts an object with keys "credentials" (a list of named Credential objects) and "lease_id" (arbitrary code). One of the credentials is chosen, and the associated site is used to launch the Cluster.
+* *hints* - (Optional) Scheduling information. Accepts an object with optional keys:
+  * "credentials" (a list of named credentials)
+  * "lease_id" (arbitrary code)
 
 Response
 -----------
@@ -33,18 +37,24 @@ Response
 * *master_node_ip* - IP address of the head node
 
 
-RM: Add/Remove Host
-=====================
+RM: Get/Create Account
+=============================
 
-Adds or removes a single node to the specified Cluster.
+Get or create credentials for a LL User on the specified Cluster. If the User:Cluster pair is not found in the database, it issues a command to the RM agent running on the cluster to create a new user and associates it with the LL user.
 
 Arguments
 -----------
 
-* *name* - Unique ID of cluster
+* *user* - LL user (obtained via Authentication)
+* *cluster* - ID of the cluster
+
+Response
+------------
+
+* *credentials* - Object with credential information defined as per Appliance.
 
 
-RM: Store Credentials
+CAS: Store Credentials
 =========================
 
 Arguments
@@ -55,7 +65,7 @@ Arguments
 * *credentials* - RSA-OAEP encrypted (obfuscated) credentials
 
 
-RM: Get Public Key
+CAS: Get Public Key
 =====================
 
 Arguments
