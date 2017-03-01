@@ -15,7 +15,11 @@ RM: Get/Create Cluster
 
 Get or create a Cluster object based on the desired Appliance.
 
-If no hints were included, the RM decides the Site to launch the Cluster on. If the user already has a Cluster using the chosen Appliance on the Site the RM decided to use (see *hints*), that Cluster is reused. The Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
+If no hints were included, the RM decides the Site to launch the Cluster on.
+
+If the RM decides to launch a Cluster for an Appliance on a Site and the Site is already hosting a Cluster implementing that same Appliance, the physical cluster is reused. If it does not exist, the Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
+
+After the physical cluster is created/found, the RM also gets or creates credentials for the LL User on that cluster, communicating with an agent on the cluster if needed.
 
 One of the Credentials enumerated in a *hints* key or available to the user making the request is used to select the Site.
 
@@ -25,33 +29,15 @@ Arguments
 * *user* - LL user (obtained via Authentication)
 * *name* - A friendly name for display
 * *appliance* - The name of the appliance to launch
-* *targeted_slave_count* - Desired number of slaves in the appliance
 * *hints* - (Optional) Scheduling information. Accepts an object with optional keys:
-  * "credentials" (a list of named credentials)
-  * "lease_id" (arbitrary code)
+  * "credentials" (a list of named compute provider credentials stored elsewhere)
+  * other appliance-specific information (e.g. number of nodes, lease ID)
 
 Response
 -----------
 
-* *id* - Unique ID of cluster
-* *master_node_ip* - IP address of the head node
-
-
-RM: Get/Create Account
-=============================
-
-Get or create credentials for a LL User on the specified Cluster. If the User:Cluster pair is not found in the database, it issues a command to the RM agent running on the cluster to create a new user and associates it with the LL user.
-
-Arguments
------------
-
-* *user* - LL user (obtained via Authentication)
-* *cluster* - ID of the cluster
-
-Response
-------------
-
-* *credentials* - Object with credential information defined as per Appliance.
+* *id* - Unique ID of cluster for the user's reference
+* *credentials* - An object with credentials and connection information as defined by the appliance
 
 
 CAS: Store Credentials
