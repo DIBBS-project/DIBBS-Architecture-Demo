@@ -48,7 +48,7 @@ Arguments
 * *user* - LL user (obtained via Authentication)
 * *name* - Friendly name of the credentials
 * *site* - The Site to which these credentials belong
-* *credentials* - RSA-OAEP encrypted (obfuscated) credentials
+* *credentials* - RSA-OAEP obfuscated credentials
 
 
 CAS: Get Public Key
@@ -60,7 +60,7 @@ Arguments
 
 Response
 -------------
-* *rsa_public* - RSA public key that can be used to encrypt (obfuscate) credentials for sending back to the server
+* *rsa_public* - RSA public key that can be used to obfuscate credentials for sending back to the server
 
 
 AR: Create Appliance
@@ -237,32 +237,10 @@ Cluster Credentials
 Relates users on a cluster to users within LambdaLink. Stores the cluster users' credentials. [Is this outside the scope of the architecture? This was added to support multiple users for a single runtime instance.]
 
 ------------------------------------------
-Missing Objects
+Caveats
 ------------------------------------------
 
-Images?
+Images
 ==========
 
 There is currently an out-of-band step required: the Glance VM image used by the Heat template must be uploaded to every site the appliance will be launched on.
-
-
-------------------------------------------
-Other Objects in current implementation
-------------------------------------------
-
-Scripts?
-===============
-
-[Currently these are tied to implementations (many scripts:one impl), so I'm not sure how they would be selected if there was more than one. Could we just store the script as an implementation? The implementation could have a date/version/rev field. -NT]
-
-
-Actions???
-===============
-
-[I have no clue what these are for or how they are used. It's implemented as a list of words that scripts relate to. Vestigial from homebrew Heat-esque Mr. Cluster? -NT]
-
-
-Host
-=========
-
-[Vestigial, appears unneeded if Heat is used to manage stack creation -NT]
