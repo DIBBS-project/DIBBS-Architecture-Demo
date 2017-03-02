@@ -30,7 +30,7 @@ Arguments
 * *name* - A friendly name for display
 * *appliance* - The name of the appliance to launch
 * *hints* - (Optional) Scheduling information. Accepts an object with optional keys:
-  * "credentials" (a list of named compute provider credentials stored elsewhere)
+  * "credentials" (a list of compute provider credentials available to the user)
   * other appliance-specific information (e.g. number of nodes, lease ID)
 
 Response
@@ -109,11 +109,10 @@ First the appliance data must be loaded into the registry so the manager can use
 
 Running, e.g. by the Operation Manager.
 
-1. Create the Cluster. Send a request to the RM (``POST /clusters``) with:
+1. Get or create the Cluster. Send a request with authentication to the RM with:
 
   * the specific Appliance name to use,
   * a friendly name,
-  * the number of slaves in the Cluster, and
   * optionally hints indicating on which Site (compute resources) to run.
 
 If no hints were included, the RM decides the Site to launch the Cluster on. If the user already has a Cluster using the chosen Appliance on the Site the RM decided to use, that Cluster is reused. The Appliance Implementation is loaded for the appropriate Site, and the RM contacts the OpenStack deployment to launch the cluster associated with the Cluster.
@@ -127,14 +126,78 @@ The response includes:
 
 2. View the Cluster. A request for the cluster by ID also returns the IP of the master node, to which connections can be made.
 
-3. [Unsure if working] Modify the Cluster. Issue a request to add/delete a host using the cluster ID that will cause the Cluster to increase/decrease by **one** host.
+3. [Undefined] Modify the Cluster. Issue a request to alter/scale the cluster using the cluster ID.
 
-4. [Unimplemented] Destroy the Cluster. Issue a request using the cluster ID to delete it
+4. [Unimplemented] Destroy the Cluster. Issue a request using the cluster ID to indicate the resources are no longer needed it.
 
 
 ----------
 Objects
 ----------
+
+Relationship diagram
+
+.. graphviz::
+
+  digraph LL {
+
+  subgraph cluster_rm {
+      label = "Resource Manager";
+      #style = filled;
+      color=red;
+      node [shape=record];
+
+      uclust [label="UserCluster"];
+      clust [label="Cluster"];
+      #clustcred [label="Cluster\nCredentials"];
+
+      uclust -> clust;
+  }
+
+  subgraph cluster_cas {
+      label = "Auth Service";
+      #style = filled;
+      color=blue;
+      node [shape=record];
+
+      user [label="User"];
+      cred [label="Credentials"];
+
+      cred -> user;
+  }
+
+  subgraph cluster_ar {
+      label = "Appliance Registry";
+      #style = filled;
+      color=green;
+      node [shape=record];
+
+      app [label="Appliance"];
+      appim [label="Appliance\nImplementation"];
+      site [label="Site"];
+
+      appim -> app;
+      appim -> site;
+  }
+
+  subgraph cluster_om {
+      label = "Operation Manager";
+      color=orange;
+
+      node [shape=record];
+
+      exe [label="Execution"];
+  }
+
+  clust -> appim;
+  cred -> site;
+  clust -> cred;
+  #clustcred -> user;
+  uclust -> user;
+  exe -> uclust;
+
+  }
+
 
 Resources that are available to the LambdaLink architecture are defined and stored in the Appliance Registry. These are "at rest" objects.
 

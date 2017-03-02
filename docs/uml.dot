@@ -1,0 +1,48 @@
+digraph LL {
+
+subgraph cluster_rm {
+    label = "Resource Manager";
+    #style = filled;
+    color=red;
+    node [shape=record];
+
+    uclust [label="UserCluster"];
+    clust [label="Cluster"];
+    clustcred [label="Cluster\nCredentials"];
+
+    uclust -> clust;# [taillabel="*",headlabel="1"];
+    uclust -> clustcred;# [taillabel="*",headlabel="1"];
+}
+
+subgraph cluster_cas {
+    label = "Auth Service";
+    #style = filled;
+    color=blue;
+    node [shape=record];
+
+    user [label="User"];
+    cred [label="Credentials"];
+
+    cred -> user;
+}
+
+subgraph cluster_ar {
+    label = "Appliance Registry";
+    #style = filled;
+    color=green;
+    node [shape=record];
+
+    app [label="Appliance"];
+    appim [label="Appliance\nImplementation"];
+    site [label="Site"];
+
+    appim -> app;
+    appim -> site;
+}
+
+clust -> appim;
+cred -> site;
+clust -> cred;
+clustcred -> user;
+
+}
