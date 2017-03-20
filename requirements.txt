@@ -1,6 +1,7 @@
 certifi
 -e repos/common-dibbs
 pycrypto
+pyjwt
 python-dateutil
 requests
 six
