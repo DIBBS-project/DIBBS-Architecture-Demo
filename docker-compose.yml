@@ -13,32 +13,33 @@ services:
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:7000"
     expose:
       - "6379"
-      - "8001"
+    #   - "8001"
     ports:
-      - "8000:8000"
-      - "8001:8001"
+    #   - "6379:6379"
+    #   - "8000:8000"
+    #   - "8001:8001"
       - "8002:8002"
       - "8003:8003"
-      - "8005:8005"
+    #   - "8005:8005"
       - "7000:7000"
-  operation_manager:
-    network_mode: "service:central_authentication_service"
-    build: .
-    volumes:
-      - ./repos:/sources
-    working_dir: /sources/operation_manager
-    command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat & python manage.py runserver 0.0.0.0:8001 && fg"
-    depends_on:
-      - "redis-server"
-  operation_registry:
-    network_mode: "service:central_authentication_service"
-    build: .
-    volumes:
-      - ./repos:/sources
-    working_dir: /sources/operation_registry
-    command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
-    depends_on:
-      - "central_authentication_service"
+  # operation_manager:
+  #   network_mode: "service:central_authentication_service"
+  #   build: .
+  #   volumes:
+  #     - ./repos:/sources
+  #   working_dir: /sources/operation_manager
+  #   command: bash -c "bash reset.sh; export C_FORCE_ROOT="true"; celery -A operation_manager worker -l info --beat & python manage.py runserver 0.0.0.0:8001 && fg"
+  #   depends_on:
+  #     - "redis-server"
+  # operation_registry:
+  #   network_mode: "service:central_authentication_service"
+  #   build: .
+  #   volumes:
+  #     - ./repos:/sources
+  #   working_dir: /sources/operation_registry
+  #   command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8000"
+  #   depends_on:
+  #     - "central_authentication_service"
   resource_manager:
     network_mode: "service:central_authentication_service"
     build: .
@@ -46,8 +47,22 @@ services:
       - ./repos:/sources
     working_dir: /sources/resource_manager
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8002"
+    # command: python manage.py runserver 0.0.0.0:8002
     depends_on:
       - "central_authentication_service"
+
+  resource_worker:
+    network_mode: "service:central_authentication_service"
+    build: .
+    volumes:
+      - ./repos:/sources
+    working_dir: /sources/resource_manager
+    command: celery worker --app=resource_manager --pool=solo --loglevel info --beat
+    environment:
+      - C_FORCE_ROOT=true
+    depends_on:
+      - "central_authentication_service"
+
   appliance_registry:
     network_mode: "service:central_authentication_service"
     build: .
@@ -55,17 +70,20 @@ services:
       - ./repos:/sources
     working_dir: /sources/appliance_registry
     command: bash -c "bash reset.sh; python manage.py runserver 0.0.0.0:8003"
+    # command: python manage.py runserver 0.0.0.0:8003
     depends_on:
       - "central_authentication_service"
-  architecture_portal:
-    network_mode: "service:central_authentication_service"
-    build: .
-    volumes:
-      - ./repos:/sources
-    working_dir: /sources/architecture_portal
-    command: bash -c "python manage.py runserver 0.0.0.0:8005"
-    depends_on:
-      - "central_authentication_service"
+
+  # architecture_portal:
+  #   network_mode: "service:central_authentication_service"
+  #   build: .
+  #   volumes:
+  #     - ./repos:/sources
+  #   working_dir: /sources/architecture_portal
+  #   command: bash -c "python manage.py runserver 0.0.0.0:8005"
+  #   depends_on:
+  #     - "central_authentication_service"
+
   redis-server:
     network_mode: "service:central_authentication_service"
     image: redis:alpine
