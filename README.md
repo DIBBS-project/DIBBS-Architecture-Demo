@@ -18,10 +18,11 @@ Operations management platform that combines access to data and computation with
   git checkout stable
   ```
 
-3. Get service repos
+3. Get subrepos
 
   ```bash
   repos/clone_all.sh
+  yes | repos/reset_stable.sh # this will obliterate uncommitted changes
   ```
 
 ### Setup
@@ -31,9 +32,16 @@ Operations management platform that combines access to data and computation with
 1. [Install Docker + Compose for your system.](https://docs.docker.com/compose/install/). Methods vary wildly for OS, dropped script-installer.
 
 2. Install basic Python requirements to talk to services
-```bash
-pip install -r requirements.txt # sudo if manipulating system install
-```
+
+  ```bash
+  pip install -r requirements.txt # sudo if manipulating system install
+  ```
+
+3. Start the Docker stack
+
+  ```bash
+  sudo run_with_docker.sh
+  ```
 
 > ***Sidebar*** Need to remove sudo at some point. Docker daemon requires that [users are in the `docker` group](https://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo). Python needs to be done in a virtual environment to avoid trashing system Python.
 
