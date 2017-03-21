@@ -18,56 +18,45 @@ Operations management platform that combines access to data and computation with
   git checkout stable
   ```
 
+3. Get service repos
+
+  ```bash
+  repos/clone_all.sh
+  ```
+
 ### Setup
 
 #### with Docker
 
+1. [Install Docker + Compose for your system.](https://docs.docker.com/compose/install/). Methods vary wildly for OS, dropped script-installer.
+
+2. Install basic Python requirements to talk to services
 ```bash
-sudo bash deploy_with_docker.sh
-sudo pip install -r requirements.txt
+pip install -r requirements.txt # sudo if manipulating system install
 ```
 
 > ***Sidebar*** Need to remove sudo at some point. Docker daemon requires that [users are in the `docker` group](https://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo). Python needs to be done in a virtual environment to avoid trashing system Python.
 
 #### without Docker
 
-> *This is currently not maintained and may be broken!*
+> *todo: doc*. Requires [pyenv](https://github.com/pyenv/pyenv-installer).
 
 ```bash
 sudo bash deploy_without_docker.sh
 pip install -r requirements.txt
 ```
 
-### Run Jobs
+### Get/Create Resources
 
-#### on ROGER
+Follow along with the HTTP commands in [`IntegrationDemo.ipynb`](IntegrationDemo.ipynb). Broadly:
 
-1. Update your account information in `infrastructure_description_roger.json`
-
-2. Run the following "one liner" script:
-  ```
-  ./onliner_init_script.sh --run-on-roger
-  ```
-
-#### on Chameleon (baremetal)
-
-1. Update your account information in `infrastructure_description_chameleon.json`
-
-2. Edit `RESERVATION_ID` in `create_lc_operation.py` with the *reservation* ID from your lease containing at least 3 nodes.
-
-3. Run the following "one liner" script:
-
-  ```
-  ./onliner_init_script.sh
-  ```
-
-### Reusing a cluster
-
-1. Make note of the instance ID from the above script. (Hint: it's probably `1` if you've only created one)
-
-2. Call Operation script like below, filling in `<instance_id>` as per above (currently valid users are `alice`, `bob`, `cindy`, `dave`).
-
-    ./create_lc_operation.py run -i<instance_id> --user=bob`
+* Get a token for the user (pre-loaded users: 'alice', 'bob', 'cindy', 'dave' with their uppercase-usernames as passwords)
+* Define a Site on the AR
+* Define an Appliance on the AR
+* Define an Implementation for the Site/Appliance on the AR
+* Load Credentials into the RM (**note:** they are not hashed/encrypted, so the database file are the crown jewels)
+* Create/get a Resource by "hinting" with the Credentials/Implementation.
+  * As a side-effect, this creates a Cluster. It can be deleted by `DELETE`'ing the Cluster endpoint.
 
 ---
 (older documentation follows...)
